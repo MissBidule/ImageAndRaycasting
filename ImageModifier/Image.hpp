@@ -1,13 +1,14 @@
-#ifndef IMAGE_HPP
-#define IMAGE_HPP
+#ifndef _IMAGE_HPP_
+#define _IMAGE_HPP_
 
 #include <iostream>
 #include <vector>
-#include <math.h>
 #include <setjmp.h>
 extern "C" {
- #include <jpeglib.h> //Pour moi : -I/usr/local/include ; -L/usr/local/lib
+ #include <jpeglib.h> //My personal path : -I/opt/homebrew/opt/jpeg/include ; -L/opt/homebrew/opt/jpeg/lib
 } //C:\GnuWin32\include ; C:\GnuWin32\lib
+
+#include "Color.hpp"
 
 #define CORR_PGMASCII
 #define CORR_PPMASCII
@@ -17,132 +18,56 @@ extern "C" {
 #define CORR_BRESENHAM
 #define CORR_TEMPLATE
 
-const char * const identifier="alidor_l";
-
-const char * const informations=
- "Le test d'ouverture du fichier (fopen) ne se fait pas via write et read sauf pour jpeg.\n"
- "L'écriture et la lecture du fichier JPEG nécessitent le nom suivi de l'extension du fichier.\n"
- "Bibliothèques incluses : <iostream> <vector> <math.h> <setjmp.h> <jpeglib.h>\n"
- "Merci.\n"
-;
-
 typedef short unsigned int ushort;
 
-///////////////CLASSES
+//Some useful functions
+void skip_line(std::istream& is);
+void skip_byte(std::istream& is, uint8_t n);
+void skip_comments(std::istream& is);
 
 //Patron des Classes d'images
 template <typename T>
 class Image {
-	public :
-		const	uint16_t width, height;
-				T *array;
-	public :
-		//On interdit la création d'une image sans dimension
-		//Pour éviter un tableau dynamique vide
-		Image()=delete;
-		//On interdit l'affectation d'une image dans une autre
-		Image& operator=(const Image&)=delete;
-		Image(uint16_t w, uint16_t h);
-		Image(const Image& orig);
-		~Image();
+public :
+    const	uint16_t width, height;
+            T *array;
+public :
+    //On interdit la création d'une image sans dimension
+    //Pour éviter un tableau dynamique vide
+    Image()=delete;
+    //On interdit l'affectation d'une image dans une autre
+    Image& operator=(const Image&)=delete;
+    Image(uint16_t w, uint16_t h);
+    Image(const Image& orig);
+    ~Image();
 
-		//Consultation de la largeur ou de la hauteur
-		inline  const  uint16_t& getWidth()const{return  width;}
-		inline  const  uint16_t& getHeight()const{return  height;}
+    //Consultation de la largeur ou de la hauteur
+    inline  const  uint16_t& getWidth()const{return  width;}
+    inline  const  uint16_t& getHeight()const{return  height;}
 
-		//Accesseurs d'un pixel
-		T& pixel(uint16_t x, uint16_t y);
-		T pixel(uint16_t x, uint16_t y) const;
-		
-		//Inverse les octets d'une variable
-		template<typename U> friend void swapBytes(U& type);
-		
-		//Transforme un ensemble de caractères en nombre
-		uint8_t Ascii2Uint8(std::istream &is);
+    //Accesseurs d'un pixel
+    T& pixel(uint16_t x, uint16_t y);
+    T pixel(uint16_t x, uint16_t y) const;
+    
+    //Inverse les octets d'une variable
+    template<typename U> friend void swapBytes(U& type);
+    
+    //Transforme un ensemble de caractères en nombre
+    uint8_t Ascii2Uint8(std::istream &is);
 
-		//Change la taille d'une image
-		Image* simpleScale(uint16_t w, uint16_t h) const;
-		Image* bilinearScale(uint16_t w, uint16_t h) const;
+    //Change la taille d'une image
+    Image* simpleScale(uint16_t w, uint16_t h) const;
+    Image* bilinearScale(uint16_t w, uint16_t h) const;
 
-		//Dessine un segment
-		void line(ushort x1,ushort y1,ushort x2,ushort y2,const T pixel_value);
+    //Dessine un segment
+    void line(ushort x1,ushort y1,ushort x2,ushort y2,const T pixel_value);
 
-		//Remplit/vide une image à l'aide d'une couleur
-		void clear(T color);
+    //Remplit/vide une image à l'aide d'une couleur
+    void clear(T color);
 
-		//Dessine des rectangles
-		void rectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, T color);
-		void fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, T color);
-};
-
-//Classe d'une image en Noir et Blanc
-class GrayImage : public Image<uint8_t> {
-	
-	//Constructeur réservé à la classe
-	private :
-		GrayImage(Image<uint8_t>);
-		
-	public :
-		//pareil que Image
-		GrayImage()=delete;
-		GrayImage& operator=(const GrayImage&)=delete;
-		GrayImage(uint16_t w, uint16_t h);
-		GrayImage(const GrayImage& orig);
-		~GrayImage();
-		
-		//Lecture/écriture d'un PGM
-		void writePGM(std::ostream& os) const;		
-		static GrayImage* readPGM(std::istream& is);
-
-		//Créent une instance de GrayImage à partir d'un image<T> modifié
-		GrayImage* simpleScale(uint16_t w, uint16_t h) const;
-		GrayImage* bilinearScale(uint16_t w, uint16_t h) const;
-};
-
-//Classe d'une couleur RGB
-class Color {
-	public :
-		uint8_t r, g, b;
-		inline Color(uint8_t _r=0, uint8_t _g=0, uint8_t _b=0) :
-		r(_r), g(_g), b(_b) {};
-		
-		//Surcharge d'opérateurs
-		friend Color operator*(double alpha, const Color& color);
-		friend Color operator+(const Color& c1, const Color& c2);
-		friend bool operator==(const Color& c1, const Color& c2);
-		friend bool operator!=(const Color& c1, const Color& c2);
-};
-
-//Classe d'une Image Colorée
-class ColorImage : public Image<Color> {
-
-	//Pareil que GrayImage
-	private :
-		ColorImage(Image<Color>);
-			
-	public :
-		//Pareil que Image
-		ColorImage()=delete;
-		ColorImage& operator=(const ColorImage&)=delete;
-		ColorImage(uint16_t w, uint16_t h);
-		ColorImage(const ColorImage& orig);
-		~ColorImage();
-				
-		//Lecture/écriture d'une image PPM
-		void writePPM(std::ostream& os) const;		
-		static ColorImage* readPPM(std::istream& is);
-		
-		//Lecture/écriture d'une image TGA
-		void writeTGA(std::ostream& os, bool rle=true) const;
-		static ColorImage* readTGA(std::istream& is);
-
-		//Lecture/écriture d'une image JPEG
-		void writeJPEG(const char* fname, unsigned int quality=75) const;
-		static ColorImage* readJPEG(const char* fname);
-
-		//Pareil que GreyImage
-		ColorImage* simpleScale(uint16_t w, uint16_t h) const;
-		ColorImage* bilinearScale(uint16_t w, uint16_t h) const;
+    //Dessine des rectangles
+    void rectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, T color);
+    void fillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, T color);
 };
 
 ///////////////IMAGE<T>
@@ -380,4 +305,4 @@ void Image<T>::line(ushort x1,ushort y1,ushort x2,ushort y2,const T pixel_value)
 	}
 }
 
-#endif
+#endif // _IMAGE_HPP_

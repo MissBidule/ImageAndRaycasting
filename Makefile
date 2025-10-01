@@ -6,15 +6,22 @@ DEL=rm -f
 INCPATH_JPEG=
 LDPATH_JPEG=
 
+SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp
+OBJECTS=$(SOURCES:.cpp=.o)
+HEADERS=Image.hpp Color.hpp ColorImage.hpp GreyImage.hpp
+
 .PHONY: all clean
 
 all: IM_DUT.exe
 
-Image.o : Image.cpp Image.hpp
-	$(GXX) -g $(CXXFLAGS) $(INCPATH_JPEG) -c Image.cpp
+%.o : %.cpp $(HEADERS)
+	$(GXX) -g $(CXXFLAGS) $(INCPATH_JPEG) -c $<
+	
+main.o : main.cpp $(HEADERS)
+	$(GXX) -g $(CXXFLAGS) $(INCPATH_JPEG) -c $<
 
-IM_DUT.exe : main.cpp Image.hpp Image.o
-	$(GXX) $(CXXFLAGS) $(INCPATH_JPEG) -g -o IM_DUT.exe.exe main.cpp Image.o $(LDPATH_JPEG) -ljpeg
+IM_DUT.exe : $(OBJECTS)
+	$(GXX) $(CXXFLAGS) $(INCPATH_JPEG) -g -o $@ $^ $(LDPATH_JPEG) -ljpeg
 
 clean:
 	$(DEL) *.o IM_DUT.exe
