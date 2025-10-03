@@ -2,6 +2,7 @@
 #define _COLOR_HPP_
 
 #include <math.h>
+#include <cstdint>
 
 //RGB color class
 class Color {

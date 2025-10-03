@@ -1,10 +1,10 @@
 GXX=g++
 CXXFLAGS=-Wall -pedantic -std=c++14
-DEL=rm -f
+DEL=rm
 
 # Adaptez ces deux variables avec vos propres chemins s'ils sont différents :
-INCPATH_JPEG=
-LDPATH_JPEG=
+INCPATH_JPEG=-I/usr/include
+LDPATH_JPEG=-L/usr/lib
 
 SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
@@ -24,4 +24,5 @@ IM_DUT.exe : $(OBJECTS)
 	$(GXX) $(CXXFLAGS) $(INCPATH_JPEG) -g -o $@ $^ $(LDPATH_JPEG) -ljpeg
 
 clean:
-	$(DEL) *.o IM_DUT.exe
+	$(DEL) *.o
+	$(DEL) IM_DUT.exe

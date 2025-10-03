@@ -1,5 +1,7 @@
 # ImageModifier_DUT
 
+Unix friendly, couldn't find the correct way to build on Windows.
+
 This project uses the libjpeg library for reading and writing jpeg pictures.
 The rest allows you to read modify and write simple PPM, PGM and TGA pictures.
 
