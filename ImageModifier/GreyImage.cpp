@@ -5,7 +5,6 @@ GreyImage::GreyImage(Image<uint8_t> temp) :
 Image<uint8_t>(temp.width, temp.height)
 {
     array=temp.array;
-    temp.array=nullptr;
 }
 
 GreyImage::GreyImage(uint16_t w, uint16_t h) :
@@ -35,7 +34,7 @@ void GreyImage::writePGM(std::ostream& os) const
     os << "#image sauvegardée avec l'outil de synthèse d'image.\n";
     os << width << ' ' << height << '\n';
     os << "255\n";
-    os.write((const char*) array, width*height);
+    os.write((const char*) &(array[0]), width*height);
 }
 
 GreyImage* GreyImage::readPGM(std::istream& is)
@@ -61,7 +60,7 @@ GreyImage* GreyImage::readPGM(std::istream& is)
     GreyImage* img=new GreyImage(w,h);
     //Un P5 est codé en octet
     if (c2=='5')
-        is.read((char*) img->array, img->width*img->height);
+        is.read((char*) &(img->array[0]), img->width*img->height);
     //Un P2 est codé en ASCII
     else
     {

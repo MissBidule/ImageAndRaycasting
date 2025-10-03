@@ -30,7 +30,7 @@ template <typename T>
 class Image {
 public :
     const	uint16_t width, height;
-            T *array;
+            std::vector<T> array;
 public :
     //On interdit la création d'une image sans dimension
     //Pour éviter un tableau dynamique vide
@@ -39,7 +39,6 @@ public :
     Image& operator=(const Image&)=delete;
     Image(uint16_t w, uint16_t h);
     Image(const Image& orig);
-    ~Image();
 
     //Consultation de la largeur ou de la hauteur
     inline  const  uint16_t& getWidth()const{return  width;}
@@ -74,24 +73,18 @@ public :
 
 template<typename T>
 Image<T>::Image(uint16_t w, uint16_t h) :
-width(w), height(h), array(nullptr)
+width(w), height(h)
 {
-	array=new T[(uint32_t)width*height]; 
+	array.resize((uint32_t)width*height);
 }
 
 template<typename T>
 Image<T>::Image(const Image& orig) :
-width(orig.width), height(orig.height), array(nullptr)
+width(orig.width), height(orig.height)
 {
-	array=new T[(uint32_t)width*height]; 
+	array.resize((uint32_t)width*height);
 	for (int64_t i=0; i<width*height; i++)
 		array[i]=orig.array[i];
-}
-
-template<typename T>
-Image<T>::~Image()
-{
-	delete [] array;
 }
 
 //////////////SCALE

@@ -5,7 +5,6 @@ ColorImage::ColorImage(Image<Color> temp) :
 Image<Color>(temp.width, temp.height)
 {
     array=temp.array;
-    temp.array=nullptr;
 }
 
 ColorImage::ColorImage(uint16_t w, uint16_t h) :
@@ -36,7 +35,7 @@ void ColorImage::writePPM(std::ostream& os) const
     os << "#image sauvegardée avec l'outil de synthèse d'image.\n";
     os << width << ' ' << height << '\n';
     os << "255\n";
-    os.write((const char*) array, width*height*3);
+    os.write((const char*) &array[0], width*height*3);
 }
 
 ColorImage* ColorImage::readPPM(std::istream& is)
@@ -62,7 +61,7 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     ColorImage* img=new ColorImage(w,h);
     //P6 is byte coded
     if (c2=='6')
-        is.read((char*) img->array, img->width*img->height*3);
+        is.read((char*) &(img->array[0]), img->width*img->height*3);
     //P3 is ASCII coded
     else
     {
@@ -358,7 +357,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     //If we do not have map specification
     //If it's a type 2, we simply read the colors
     else if (type!=10)
-            is.read((char*) img->array, img->width*img->height*3);
+            is.read((char*) &(img->array[0]), img->width*img->height*3);
         //Whereas with type 10, the compression is taken into account
         else
         {
@@ -398,12 +397,12 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     //Modify the array if it's a picture from bottom left
     if (start!=32)
     {
-        Color* arraytemp=new Color[w*h];
+        std::vector<Color> arraytemp(w*h);
         uint32_t u=0;
         for (int32_t i=h-1; i>=0; i--)
             for (uint16_t j=0; j<w; j++)
                 arraytemp[u++]=img->array[w*i+j];
-        delete [] img->array;
+        img->array.clear();
         img->array=arraytemp;
     }
 
@@ -468,7 +467,7 @@ void ColorImage::writeJPEG(const char* fname, unsigned int quality) const
     jpeg_set_quality(&cinfo, quality, TRUE);
 
     //On indique le tableau où sont stockées les données des pixels
-    JSAMPLE * ptr_array=(unsigned char*) array;
+    JSAMPLE * ptr_array=(unsigned char*) &array[0];
 
     //Lancement de la compression
     jpeg_start_compress(&cinfo, TRUE);
@@ -510,7 +509,7 @@ ColorImage* ColorImage::readJPEG(const char* fname)
     jpeg_start_decompress(&cinfo);
     row_stride = cinfo.output_width * cinfo.output_components;
     //On indique où l'on souhaite stocker les pixels
-    JSAMPLE * ptr_array=(unsigned char*) img->array;
+    JSAMPLE * ptr_array=(unsigned char*) &(img->array[0]);
     //C'est ici que vont être enregistré chaque ligne
     JSAMPROW* buffer=new JSAMPROW[1];
     while (cinfo.output_scanline < cinfo.output_height) {
