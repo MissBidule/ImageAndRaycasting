@@ -69,7 +69,7 @@ ColorImage* ColorImage::readPPM(std::istream& is)
         uint8_t _r, _g, _b;
         for (int64_t i=0; i<img->width*img->height; i++)
         {
-            //Une couleur est composée de 3 octets
+            //a color is made of 3 bytes
             _r=img->Ascii2Uint8(is);
             _g=img->Ascii2Uint8(is);
             _b=img->Ascii2Uint8(is);
@@ -79,13 +79,13 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     return img;
 }
 
-///////////TGA
+//TGA
 
 void ColorImage::writeTGA(std::ostream& os, bool rle) const
 {
-    //Données qui composent le début du TGA
+    //Data needed at the start of the TGA
     uint8_t entete[]={0,0,2,0,0,0,0,0,0,0,0,0};
-    //Indique au fichier si il est compressé
+    //Tells if the file is compressed
     if (rle)
         entete[2]=10;
     os.write((const char*) entete, 12);
@@ -93,92 +93,89 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
     const char* ptr2=(char*) &height;
     os.write(ptr1,2);
     os.write(ptr2,2);
-    //Image en RGB
+    //RGB
     os.put(24);
-    //L'image commence en haut à gauche (c'est plus simple)
+    //Picture starts on the top left (easier)
     os.put(32);
     Color* couleurs=new Color[width*height];
     for (int64_t i=0; i<width*height; i++)
     {
         couleurs[i]=array[i];
-        //On inverse les couleurs RGB en BGR
+        //Swap colors from RGB to BGR
         swapBytes(couleurs[i]);
     }
     if (!rle)
-        //Ecriture non compressée
+        //Uncompressed writing
         os.write((const char*)couleurs, width*height*3);
     else
     {
-        //Vecteur qui contiendra les couleurs seules
+        //Vector that holds colors not repeated
         //Raw packets
         std::vector<Color>* vectC=new std::vector<Color>;
-        //Couleur qui sert à comparer avec la suivante
+        //Last color
         Color temp=couleurs[0];
-        //Compteur de couleurs identiques
+        //Counting iterations of identical color
         uint8_t nb=1;
         for (int64_t i=1; i<width*height; i++)
         {
-            //Couleurs identiques inférieures à 128
+            //Identical colors less than 128
             if ((couleurs[i]==temp && nb<128) && vectC->empty())
                 nb++;
-            //Premières couleurs différentes seules
+            //First colors not repeated
             else if ((temp!=couleurs[i] && vectC->empty()) && nb==1)
                 {
-                    //On ajoute temp et la couleur dans le vecteur
+                    //We add temp and the color in the vector
                     vectC->push_back(temp);
                     vectC->push_back(couleurs[i]);
                     temp=couleurs[i];
                 }
-            //Suite des couleurs différentes seules (moins de 128)
+            //Different colors not repeated (less than 128)
             else if ((temp!=couleurs[i] && vectC->size()<128) && !vectC->empty())
                 {
-                    //On ajoute la nouvelle couleur dans le vecteur
+                    //We add the new color in the vector
                     vectC->push_back(couleurs[i]);
                     temp=couleurs[i];
                 }
-            //Suite des couleurs différentes seules (maximum)
+            //Maximum of not repeated colors
             else if (temp!=couleurs[i] && vectC->size()==128)
             {
-                    //On écrit le nombre de couleurs seules maximum
+                    //We write the maximum
                     os.put(127);
                     Color* tabtemp=new Color[128];
-                    //On transforme le vecteur en tableau
-                    //Pour faire un write sans problèmes
+                    //We change the type of the array and write it
                     for (uint8_t j=0; j<128; j++)
                         tabtemp[j]=vectC->at(j);
                     os.write((const char*)tabtemp, 128*3);
                     delete [] tabtemp;
-                    //On vide le vecteur de couleurs seules
+                    //We empty the vector
                     vectC->clear();
-                    //On y met la dernière couleur lue
+                    //We add the last color read
                     vectC->push_back(couleurs[i]);
                     temp=couleurs[i];
             }
-            //Couleur identique mais on avait commencé une suite
-            //de couleurs seules
+            //Identical colors but we started a list of not repeated colors
             else if (temp==couleurs[i] && !vectC->empty())
             {
-                //Comme on n'écrit pas la dernière couleur, inutile
-                //de se préoccuper du vecteur de taille 1
+                //As we do not write the last color there's no use for the size 1 vector
                 if (vectC->size()>1)
                 {
-                    //On retire la dernière couleur qui n'est pas seule
+                    //We remove the last color as it is repeated
                     uint8_t n=vectC->size()-1;
                     os.put(n-1);
                     Color* tabtemp=new Color[n];
-                    //pareil, on facilite l'écriture grâce au tableau
+                    //Same as before
                     for (uint8_t j=0; j<n; j++)
                         tabtemp[j]=vectC->at(j);
                     os.write((const char*)tabtemp, n*3);
                     delete [] tabtemp;
                 }
                 vectC->clear();
-                //On passe à deux couleurs identiques
+                //We then switch to identical colors
                 nb++;
             }
-            //Ce else prend en compte les deux cas suivants :
-            //-Couleurs identiques et compteur = 128
-            //-Couleurs différentes et compteur > 1
+            //This else is for :
+            //-128 identical colors
+            //-Different colors and nb > 1
             else
             {
                 nb+=127;
@@ -189,7 +186,7 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
                 temp=couleurs[i];
             }
         }
-        //On écrit les derniers pixels qui ont été seulement enregistrés
+        //We write the last pixels that only got saved
         if (vectC->size()>0)
         {
             uint8_t n=vectC->size();
@@ -202,10 +199,10 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
         }
         else
         {
-        nb+=127;
-        os.put(nb);
-        char* ptr_temp=(char*) &temp;
-        os.write(ptr_temp, 3);
+            nb+=127;
+            os.put(nb);
+            char* ptr_temp=(char*) &temp;
+            os.write(ptr_temp, 3);
         }
         delete vectC;
     }
@@ -214,7 +211,7 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
 
 ColorImage* ColorImage::readTGA(std::istream& is)
 {
-    //Toutes les variables sur un octet que j'ai besoin de lire
+    //All variables on a byte that we need
     uint8_t comm, map, type, map_size, pxl_size, start;
     char* ptr_comm=(char*) &comm;
     char* ptr_map=(char*) &map;
@@ -223,7 +220,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     char* ptr_pxl_size=(char*) &pxl_size;
     char* ptr_start=(char*) &start;
     
-    //Toutes les variables sur deux octets que j'ai besoin de lire
+    //All variables on two bytes that we need
     uint16_t map_lgt, w, h;
     char* ptr_map_lgt=(char *) &map_lgt;
     char* ptr_w=(char *) &w;
@@ -232,48 +229,47 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     is.get(*ptr_comm);
     is.get(*ptr_map);
     is.get(*ptr_type);
-    //Je ne lis les fichiers TGA que de type 1, 2, 9, 10
+    //We only read TGA of type 1, 2, 9, 10
     if (((type!=1 && type!=2) && type!=9 ) && type!=10)
         throw std::runtime_error("Ce type de données TGA n'est pas pris en charge.");
-    //On ignore l'origine de la map
+    //We ignore the map origin
     skip_byte(is, 2);
     is.read(ptr_map_lgt,2);
     is.get(*ptr_map_size);
-    //Si on a une palette, on a besoin que les couleurs soient en 3 fois un octets
+    //If we have a color map specification, we need the colors to be in 3 bytes
     if (map==1 && map_size!=24)
         throw std::runtime_error("Ce n'est pas une image RGB.");
-    //On ignore l'origine de l'image
+    //We ignore picture origin
     skip_byte(is, 4);
     is.read(ptr_w,2);
     is.read(ptr_h,2);
     is.get(*ptr_pxl_size);
-    //Seulement si on n'a pas de palette, on vérifie que les couleurs soient en 3 fois un octet
+    //If we don't need map specification, we check colors to be in 3 bytes
     if (map!=1 && pxl_size!=24)
         throw std::runtime_error("Ce n'est pas une image RGB.");
-    //Si cette valeur est égale à 32, alors l'image commence en haut à gauche
-    //Sinon en bas à gauche
+    //If this value is equal to 32, then the picture starts top left, otherwise bottom left
     is.get(*ptr_start);
     skip_byte(is, comm);
     
     ColorImage* img=new ColorImage(w,h);
     
-    //Lecture des couleurs par palette
+    //Reading by map specification
     if (map==1)
     {
-        //Création et lecture de la palette
+        //Creation of the map
         Color* couleurs=new Color[map_lgt];
         is.read((char*)couleurs, 3*map_lgt);
-        //Si l'index de couleur est sur un octet
+        //If the color index is on a byte
         if (pxl_size==8)
         {
             uint8_t* index=new uint8_t[w*h];
-            //Si c'est un type 1, on lit normalement les index
+            //If it's a type one we just read the index
             if (type!=9)
                 is.read((char*)index, w*h);
-            //Si c'est un type 9, on prend en compte la compression
+            //If it's a type 9 we take the compression into account
             else
             {
-                //compteur de couleurs enregistrées
+                //Counter of saved colors
                 uint32_t n=0;
                 uint8_t t;
                 char* ptr_t=(char*) &t;
@@ -282,30 +278,30 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                 do
                 {
                     is.get(*ptr_t);
-                    //Si c'est une suite de couleurs seules
+                    //If it is non repetitive colors
                     if (t<128)
                     {
-                        //On prend le nombre de couleurs
+                        //We take the number of colors
                         t+=1;
-                        //Lit les index de couleurs seules
+                        //Read the index
                         uint8_t* tabtmp=new uint8_t[t];
                         is.read((char*)tabtmp, t);
                         for (uint8_t i=0; i<t; i++)
-                            //Ecrit les index de couleurs seules à partir de n
+                            //Write the indexes from n
                             index[i+n]=tabtmp[i];
-                        //Mise à jour du compteur
+                        //Update counter
                         n+=t;
                         delete [] tabtmp;
                     }
-                    //Si c'est une suite de couleurs identiques
+                    //If it is repetitive
                     else
                     {
-                        //On prend le nombre de couleurs (en enlevant le byte 8)
+                        //We take the number of colors minus 1 byte
                         t-=127;
-                        //Lit l'index de la couleur
+                        //Read the color index
                         is.get(*ptr_temp);
                         for (uint8_t i=0; i<t; i++)
-                            //On écrit l'index t fois à partir de n
+                            //Write the index t from n
                             index[i+n]=temp;
                         n+=t;
                     }
@@ -313,11 +309,11 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             }
             
             for (int64_t i=0; i<w*h; i++)
-                //On récupère les couleurs en prenant les index enregistrés
+                //We retrieve the colors from the saved indexes
                 img->array[i]=couleurs[index[i]];
             delete [] index;
         }
-        //Pareil mais avec des index sur deux octets
+        //Same but with 2 bytes indexes
         else if (pxl_size==16)
                 {
                     uint16_t* index=new uint16_t[w*h];
@@ -359,12 +355,11 @@ ColorImage* ColorImage::readTGA(std::istream& is)
                 }
         delete [] couleurs;
     }
-    //Si on a pas de palette
-    //Si c'est un type 2, on lit simplement les couleurs
+    //If we do not have map specification
+    //If it's a type 2, we simply read the colors
     else if (type!=10)
             is.read((char*) img->array, img->width*img->height*3);
-        //Si c'est un type 10, on prend en compte la compression de la même
-        //manière qu'avec la palette
+        //Whereas with type 10, the compression is taken into account
         else
         {
             uint32_t n=0;
@@ -396,11 +391,11 @@ ColorImage* ColorImage::readTGA(std::istream& is)
             } while ((int64_t)n<w*h);
         }
         
-    //On inverse le tableau en BGR pour le passer en RGB
+    //We swap the colors from BGR to RGB
     for (int64_t i=0; i<w*h; i++)
         swapBytes(img->array[i]);
     
-    //On modifie le tableau si l'image commence en bas à gauche
+    //Modify the array if it's a picture from bottom left
     if (start!=32)
     {
         Color* arraytemp=new Color[w*h];
@@ -415,7 +410,7 @@ ColorImage* ColorImage::readTGA(std::istream& is)
     return img;
 }
 
-///////////JPEG
+//JPEG
 
 //Cette structure permet de ne pas lancer de exit() en passant par
 //la fonction my_error_exit()
