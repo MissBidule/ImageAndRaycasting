@@ -5,9 +5,42 @@
 #include "ColorImage.hpp"
 #include "GreyImage.hpp"
 
+#include "RayCircle.hpp"
+
 int main(int argc, char* argv [])
 {
     {
+        //this uses the jpeg format, scales it and compressed it
+        ColorImage* img = ColorImage::readJPEG("ifpicture/cropPic.jpg");
+        ColorImage* scaleImg = img->bilinearScale(800, 800);
+        ColorImage* scaleImg2 = new ColorImage(*scaleImg);
+        
+        const int FOV = 1000;
+        const ViewType view = ViewType::ORTHO;
+        
+        Circle c1{Vec3u{400, 400, 2500}, 300};
+        Circle c2{Vec3u{650, 650, 2200}, 200};
+        Circle c3{Vec3u{200, 350, 2000}, 100};
+        
+        drawCircleRaytracing<Color>(c1, *scaleImg, Color(255, 0, 0), view, FOV);
+        drawCircleRaytracing<Color>(c2, *scaleImg, Color(0, 255, 0), view, FOV);
+        drawCircleRaytracing<Color>(c3, *scaleImg, Color(0, 0, 255), view, FOV);
+        
+        scaleImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
+        
+        const ViewType view2 = ViewType::PERSP;
+        
+        drawCircleRaytracing<Color>(c1, *scaleImg2, Color(255, 0, 0), view2, FOV);
+        drawCircleRaytracing<Color>(c2, *scaleImg2, Color(0, 255, 0), view2, FOV);
+        drawCircleRaytracing<Color>(c3, *scaleImg2, Color(0, 0, 255), view2, FOV);
+        
+        scaleImg2->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
+        
+        delete img;
+        delete scaleImg;
+    }
+    
+    /*{
         //this will copy a colored picture
         std::ifstream fi;
         fi.open("ifpicture/chat.ppm", std::ios::binary);
@@ -148,7 +181,7 @@ int main(int argc, char* argv [])
         
         delete img;
         delete scaleImg;
-    }
+    }*/
 
 	return 0;
 }

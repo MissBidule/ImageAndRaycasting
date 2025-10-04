@@ -6,7 +6,7 @@
 #include <setjmp.h>
 extern "C" {
  #include <jpeglib.h> //My personal path : -I/opt/homebrew/opt/jpeg/include ; -L/opt/homebrew/opt/jpeg/lib
-} //C:\GnuWin32\include ; C:\GnuWin32\lib
+} //-Iusr/include ; -L/usr/lib
 
 #include "Color.hpp"
 
@@ -134,7 +134,7 @@ Image<T>* Image<T>::bilinearScale(uint16_t w, uint16_t h) const
 			T p3=pixel(xi,yjp1);
 			T p4=pixel(xip1,yjp1);
 			//Formule utilisée pour la couleur du pixel final
-			scale->pixel(i,j)=(1-lambda)*((1-mu)*p1+mu*p3)+lambda*((1-mu)*p2+mu*p4);
+			scale->pixel(i,j)=(p1*(1-mu)+p3*mu)*(1-lambda)+(p2*(1-mu)+p4*mu)*lambda;
 		}
 	return scale;
 }

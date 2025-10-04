@@ -3,12 +3,12 @@ CXXFLAGS=-Wall -pedantic -std=c++14
 DEL=rm
 
 # Adaptez ces deux variables avec vos propres chemins s'ils sont différents :
-INCPATH_JPEG=-I/usr/include
-LDPATH_JPEG=-L/usr/lib
+INCPATH_JPEG=-I/opt/homebrew/opt/jpeg/include
+LDPATH_JPEG=-L/opt/homebrew/opt/jpeg/lib
 
 SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-HEADERS=Image.hpp Color.hpp ColorImage.hpp GreyImage.hpp
+HEADERS=Image.hpp Color.hpp ColorImage.hpp GreyImage.hpp Utils.hpp RayCircle.hpp
 
 .PHONY: all clean
 

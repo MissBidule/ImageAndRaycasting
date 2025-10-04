@@ -34,9 +34,22 @@
 		64EEA8742E8B06B9002EB390 /* ofpicture */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ofpicture; path = ImageModifier/ofpicture; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		64EEA8D52E8FFD4F002EB390 /* Exceptions for "ImageModifier" folder in "Compile Sources" phase from "ImageModifier" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 64EEA79F2E8AF896002EB390 /* Sources */;
+			membershipExceptions = (
+				RayCircle.hpp,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		64EEA7A52E8AF896002EB390 /* ImageModifier */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				64EEA8D52E8FFD4F002EB390 /* Exceptions for "ImageModifier" folder in "Compile Sources" phase from "ImageModifier" target */,
+			);
 			path = ImageModifier;
 			sourceTree = "<group>";
 		};

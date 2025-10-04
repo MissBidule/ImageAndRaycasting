@@ -1,21 +1,21 @@
 #include "Color.hpp"
 
-Color operator*(double alpha, const Color& color)
+Color Color::operator+(const Color& c) const
 {
-    return Color(color.r*alpha, color.g*alpha, color.b*alpha);
+    return Color(r+c.r, g+c.g, b+c.b);
 }
 
-Color operator+(const Color& c1, const Color& c2)
+bool Color::operator==(const Color& c) const
 {
-    return Color(c1.r+c2.r, c1.g+c2.g, c1.b+c2.b);
+    return (((r==c.r) && (g==c.g)) && (b==c.b));
 }
 
-bool operator==(const Color& c1, const Color& c2)
+bool Color::operator!=(const Color& c) const
 {
-    return (((c1.r==c2.r) && (c1.g==c2.g)) && (c1.b==c2.b));
+    return (((r!=c.r) || (g!=c.g)) || (b!=c.b));
 }
 
-bool operator!=(const Color& c1, const Color& c2)
+Color Color::operator*(const double& alpha) const
 {
-    return (((c1.r!=c2.r) || (c1.g!=c2.g)) || (c1.b!=c2.b));
+    return Color(r*alpha, g*alpha, b*alpha);
 }

@@ -1,4 +1,5 @@
 #include "Image.hpp"
+#include "Utils.hpp"
 
 //STATIC METHODS
 

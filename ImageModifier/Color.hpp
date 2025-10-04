@@ -14,11 +14,11 @@ class Color {
     static inline uint8_t toGreyScale(Color color) {return (color.r + color.g + color.b) / 3;};
     static inline Color toRGB(uint8_t grey) {return Color(grey, grey, grey);};
         
-        //Operator overloading
-        friend Color operator*(double alpha, const Color& color);
-        friend Color operator+(const Color& c1, const Color& c2);
-        friend bool operator==(const Color& c1, const Color& c2);
-        friend bool operator!=(const Color& c1, const Color& c2);
+    //Operator overloading
+    Color operator+(const Color& c) const;
+    bool operator==(const Color& c) const;
+    bool operator!=(const Color& c) const;
+    Color operator*(const double& alpha) const;
 };
 
 #endif // _COLOR_HPP_
