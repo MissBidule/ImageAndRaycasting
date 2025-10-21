@@ -2,42 +2,71 @@
 #include <iostream>
 #include <fstream>
 
-#include "ColorImage.hpp"
+#include "Circle.hpp"
 #include "GreyImage.hpp"
-
-#include "RayCircle.hpp"
 
 int main(int argc, char* argv [])
 {
+
+    //Exercises with shapes
     {
-        //this uses the jpeg format, scales it and compressed it
+        //This is our base which shows if something is missing
         ColorImage* img = ColorImage::readJPEG("ifpicture/cropPic.jpg");
-        ColorImage* scaleImg = img->bilinearScale(800, 800);
-        ColorImage* scaleImg2 = new ColorImage(*scaleImg);
+
+        //we create light(s)
+        Light pointLight {
+            Vec3f{700, 700, 1500},
+            Color(150, 150, 150),
+            LightType::POINT
+        };
         
-        const int FOV = 1000;
-        const ViewType view = ViewType::ORTHO;
+        //define our primitives and materials
+        Material Mc1 {
+            Color::colorFromFloat(0.1745, 0.0215, 0.0215),
+            Color::colorFromFloat(0.61424, 0.07568, 0.07568),
+            Color::colorFromFloat(0.727811, 0.633, 0.633),
+            0.6
+        };
+        Circle c1(Vec3f{400, 400, 2500}, 300, Mc1);
+
+        Material Mc2 {
+            Color::colorFromFloat(0.0215, 0.1745, 0.0215),
+            Color::colorFromFloat(0.07568, 0.61424, 0.07568),
+            Color::colorFromFloat(0.633, 0.727811, 0.633),
+            0.6
+        };
+        Circle c2(Vec3f{600, 650, 2200}, 200, Mc2);
+
+        Material Mc3 {
+            Color::colorFromFloat(0.0215, 0.0215, 0.1745),
+            Color::colorFromFloat(0.07568, 0.07568, 0.61424),
+            Color::colorFromFloat(0.633, 0.633, 0.727811),
+            0.6
+        };
+        Circle c3(Vec3f{200, 350, 2000}, 100, Mc3);
+    
+        //our camera defines our final view
+        Camera cam {
+            Vec3f{400, 400, 0},
+            ViewType::ORTHO,
+            800,
+            800,
+            1500
+        };
+
+        //draw our first picture in orthogonal view
+        ColorImage* orthoImg = Primitive::draw(*img, cam, pointLight);
+        orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
         
-        Circle c1{Vec3u{400, 400, 2500}, 300};
-        Circle c2{Vec3u{650, 650, 2200}, 200};
-        Circle c3{Vec3u{200, 350, 2000}, 100};
+        //change and draw in perspective
+        cam.viewType = ViewType::PERSP;
         
-        drawCircleRaytracing<Color>(c1, *scaleImg, Color(255, 0, 0), view, FOV);
-        drawCircleRaytracing<Color>(c2, *scaleImg, Color(0, 255, 0), view, FOV);
-        drawCircleRaytracing<Color>(c3, *scaleImg, Color(0, 0, 255), view, FOV);
-        
-        scaleImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
-        
-        const ViewType view2 = ViewType::PERSP;
-        
-        drawCircleRaytracing<Color>(c1, *scaleImg2, Color(255, 0, 0), view2, FOV);
-        drawCircleRaytracing<Color>(c2, *scaleImg2, Color(0, 255, 0), view2, FOV);
-        drawCircleRaytracing<Color>(c3, *scaleImg2, Color(0, 0, 255), view2, FOV);
-        
-        scaleImg2->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
+        ColorImage* perspImg = Primitive::draw(*img, cam, pointLight);
+        perspImg->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
         
         delete img;
-        delete scaleImg;
+        delete orthoImg;
+        delete perspImg;
     }
     
     /*{

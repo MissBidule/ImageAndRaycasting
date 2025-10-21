@@ -6,9 +6,9 @@ DEL=rm
 INCPATH_JPEG=-I/opt/homebrew/opt/jpeg/include
 LDPATH_JPEG=-L/opt/homebrew/opt/jpeg/lib
 
-SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp
+SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp Primitive.cpp Circle.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-HEADERS=Image.hpp Color.hpp ColorImage.hpp GreyImage.hpp Utils.hpp RayCircle.hpp
+HEADERS=Image.hpp Utils.hpp Color.hpp ColorImage.hpp GreyImage.hpp Primitive.hpp Circle.hpp
 
 .PHONY: all clean
 

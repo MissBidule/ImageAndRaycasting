@@ -527,18 +527,14 @@ ColorImage* ColorImage::readJPEG(const char* fname)
 ColorImage* ColorImage::simpleScale(uint16_t w, uint16_t h) const
 {
     //pareil que GreyImage
-    Image<Color>* temp=Image<Color>::simpleScale(w,h);
-    ColorImage* scale=new ColorImage(*temp);
-    delete temp;
+    ColorImage* scale=new ColorImage(*Image<Color>::simpleScale(w,h));
     return scale;
 }
 
 ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
 {
     //pareil que GreyImage
-    Image<Color>* temp=Image<Color>::bilinearScale(w,h);
-    ColorImage* scale=new ColorImage(*temp);
-    delete temp;
+    ColorImage* scale=new ColorImage(*Image<Color>::bilinearScale(w,h));
     return scale;
 }
 

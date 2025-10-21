@@ -37,11 +37,11 @@ double isIntersect(Circle& circle, ViewType view, uint16_t x, uint16_t y, uint16
     Vec3f OC;
     if (view == ViewType::ORTHO) {
         dir = Vec3f{0, 0, 1};
-        OC = Vec3f{(float)circle.position.x - x, (float)circle.position.y - y, (float)circle.position.z};
+        OC = Vec3f{circle.position.x - x, circle.position.y - y, circle.position.z};
     }
     else {
         dir = Vec3i{x - x0, y - y0, 0 + fov}.normalize();
-        OC = Vec3f{(float)circle.position.x - x0, (float)circle.position.y - y0, (float)circle.position.z - fov};
+        OC = Vec3f{circle.position.x - x0, circle.position.y - y0, circle.position.z - fov};
     }
     double a = dir.norm2(); //usually 1
     double b = - 2 * OC.dot(dir);
@@ -62,7 +62,7 @@ T depthColor(double distance, T color, Circle& c, ViewType view, uint16_t x0, ui
         OC = c.position.z;
     }
     else {
-        OC = Vec3f{(float)c.position.x - x0, (float)c.position.y - y0, (float)c.position.z - fov}.norm();
+        OC = Vec3f{c.position.x - x0, c.position.y - y0, c.position.z - fov}.norm();
     }
     
     return color * ((distance - OC) / - c.r);

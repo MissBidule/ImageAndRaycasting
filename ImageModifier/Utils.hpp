@@ -2,7 +2,7 @@
 #define _UTILS_HPP_
 
 #include <iostream>
-#include <cmath>
+#include "Color.hpp"
 
 //basic vector3 for any use
 template <typename t>
@@ -27,12 +27,12 @@ struct Vec3 {
     template <typename u>
     Vec3<t> operator*(u a) const {
         return Vec3<t>{x * a, y * a, z * a};
-    };
+    }
 
     template <typename u>
     Vec3<t> operator/(u a) const {
         return Vec3<t>{x / a, y / a, z / a};
-    };
+    }
 
     bool operator==(const Vec3<t> v) const {
         return ((x == v.x && y == v.y) && z == v.z);
@@ -76,9 +76,31 @@ enum ViewType {
     PERSP
 };
 
-struct Circle {
-    Vec3u position;
-    uint16_t r;
+enum LightType {
+    POINT,
+    DIR
+};
+
+struct Camera {
+    Vec3f viewPos;
+    ViewType viewType;
+    int width;
+    int height;
+    int FOV = 1000;
+};
+
+struct Light {
+    Vec3f pos;
+    Color color;
+    LightType type;
+    Vec3f dir; //used only for directional
+};
+
+struct Material {
+    Color ambient;
+    Color diffuse;
+    Color specular;
+    float shininess;
 };
 
 #endif //_utils_hpp

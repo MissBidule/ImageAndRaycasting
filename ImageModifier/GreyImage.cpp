@@ -80,17 +80,13 @@ GreyImage* GreyImage::readPGM(std::istream& is)
 GreyImage* GreyImage::simpleScale(uint16_t w, uint16_t h) const
 {
     //On appelle le constructeur privé de l'image avec le patron modifié
-    Image<uint8_t>* temp=Image<uint8_t>::simpleScale(w,h);
-    GreyImage* scale=new GreyImage(*temp);
-    delete temp;
+    GreyImage* scale=new GreyImage(*Image<uint8_t>::simpleScale(w,h));
     return scale;
 }
 
 GreyImage* GreyImage::bilinearScale(uint16_t w, uint16_t h) const
 {
     //pareil que simpleScale
-    Image<uint8_t>* temp=Image<uint8_t>::bilinearScale(w,h);
-    GreyImage* scale=new GreyImage(*temp);
-    delete temp;
+    GreyImage* scale=new GreyImage(*Image<uint8_t>::bilinearScale(w,h));
     return scale;
 }
