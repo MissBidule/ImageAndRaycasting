@@ -2,7 +2,7 @@
 
 Circle::Circle(Vec3f pos, float _radius, Material mat) : Primitive(pos, mat), radius(_radius) {}
 
-double Circle::isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam, Light light) const {
+double Circle::isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam) const {
     Vec3f dir;
     Vec3f OC;
     if (cam.viewType == ViewType::ORTHO) {
@@ -25,10 +25,30 @@ double Circle::isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam, Lig
     else return t2;
 }
 
-Color Circle::definitiveColor(Light light, Vec3f viewPos, Vec3f normal, Vec3f fragPos) const {
-    return Color(0, 0, 0);
+Color Circle::definitiveColor(double distance, Light light, Camera cam, uint16_t x, uint16_t y) const {
+    Vec3f dir;
+    if (cam.viewType == ViewType::ORTHO) {
+        dir = Vec3f{0, 0, 1};
+    }
+    else {
+        dir = Vec3f{x - cam.viewPos.x, y - cam.viewPos.y, cam.FOV - cam.viewPos.z}.normalize();
+    }
+    Vec3f fragPos = cam.viewPos + dir * distance;
+    Vec3f normal = Vec3f{fragPos.x - pos.x, fragPos.y - pos.y, fragPos.z - pos.z}.normalize();
+
+    //WIP
+
+    return mat.ambient;
 }
 
 float Circle::depthValue(double distance, Camera cam) const {
-    return -1;
+    float OC;
+    if (cam.viewType == ViewType::ORTHO) {
+        OC = pos.z;
+    }
+    else {
+        OC = Vec3f{pos.x - cam.viewPos.x, pos.y - cam.viewPos.y, pos.z - cam.viewPos.z}.norm();
+    }
+    
+    return ((distance - OC) / - radius);
 }

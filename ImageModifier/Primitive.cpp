@@ -26,20 +26,15 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, Light light) { //
             index = 0;
             distance = -1;
             for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->isIntersect(cam.viewPos, i, j, cam, light);
-                /*if (distance == -1) distance = temp;
-                if (temp != -1 && temp < distance) {
+                temp = objectList[u]->isIntersect(cam.viewPos, i, j, cam);
+                if ((temp != -1 && temp < distance) || distance == -1) {
                     distance = temp;
                     index = u;
-                }*/
-               //
-               if (temp != -1)
-                    returnImg->pixel(i, j) = objectList[u]->mat.ambient;
-               //
+                }
             }
-            // if (distance >= 0) {
-            //     returnImg->pixel(i, j) = objectList[index]->mat.ambient;
-            // }
+            if (distance >= 0) {
+                returnImg->pixel(i, j) = objectList[index]->definitiveColor(distance, light, cam, i, j);
+            }
         }
     }
 

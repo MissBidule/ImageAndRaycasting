@@ -35,7 +35,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
         };
-        Circle c2(Vec3f{600, 650, 2200}, 200, Mc2);
+        Circle c2(Vec3f{600, 650, 2300}, 200, Mc2);
 
         Material Mc3 {
             Color::colorFromFloat(0.0215, 0.0215, 0.1745),
@@ -43,7 +43,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.633, 0.727811),
             0.6
         };
-        Circle c3(Vec3f{200, 350, 2000}, 100, Mc3);
+        Circle c3(Vec3f{150, 350, 2420}, 100, Mc3);
     
         //our camera defines our final view
         Camera cam {

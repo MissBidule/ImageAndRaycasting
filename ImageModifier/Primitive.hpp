@@ -13,8 +13,8 @@ class Primitive {
         static ColorImage* draw(const ColorImage& img, Camera cam, Light light); /////////////////////////////////////MULTIPLE LIGHTS !!!!!
 
     protected:
-        virtual double isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam, Light light) const = 0;
-        virtual Color definitiveColor(Light light, Vec3f viewPos, Vec3f normal, Vec3f fragPos) const = 0;
+        virtual double isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam) const = 0;
+        virtual Color definitiveColor(double distance, Light light, Camera cam, uint16_t x, uint16_t y) const = 0;
         virtual float depthValue(double distance, Camera cam) const = 0;
         
         friend bool sortByDepth(const Primitive& a, const Primitive& b);
