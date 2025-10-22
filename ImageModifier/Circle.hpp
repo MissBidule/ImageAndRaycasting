@@ -8,8 +8,8 @@ class Circle : public Primitive {
         Circle(Vec3f pos, float _radius, Material mat);
 
     private:
+        Vec3f normalAtPoint(Vec3f fragPos) const override;
         double isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam) const override;
-        Color definitiveColor(double distance, Light light, Camera cam, uint16_t x, uint16_t y) const override;
         float depthValue(double distance, Camera cam) const override;
 
         float radius;
