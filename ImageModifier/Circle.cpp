@@ -27,17 +27,19 @@ double Circle::isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam) con
 
 Color Circle::definitiveColor(double distance, Light light, Camera cam, uint16_t x, uint16_t y) const {
     Vec3f dir;
+    Vec3f fragPos;
     if (cam.viewType == ViewType::ORTHO) {
         dir = Vec3f{0, 0, 1};
+        fragPos = Vec3f{(float)x, (float)y, 0} + dir * (float)distance;
     }
     else {
         dir = Vec3f{x - cam.viewPos.x, y - cam.viewPos.y, cam.FOV - cam.viewPos.z}.normalize();
+        fragPos = cam.viewPos + dir * (float)distance;
     }
     
-    Vec3f fragPos = cam.viewPos + dir * (float)distance;
     //TEST LIGHT RAYTRACE
     
-    //This is the only thing that circle has in particular
+    //This is the only thing that circle has in particular must change
     Vec3f normal = (fragPos - pos).normalize();
     //
     Vec3f lightColor = light.color;
