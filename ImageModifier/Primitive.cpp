@@ -26,7 +26,7 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, Light light) { //
             index = 0;
             distance = -1;
             for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->isIntersect(cam.viewPos, i, j, cam);
+                temp = objectList[u]->isViewIntersect(i, j, cam);
                 if ((temp != -1 && temp < distance) || distance == -1) {
                     distance = temp;
                     index = u;
@@ -53,7 +53,8 @@ Color Primitive::definitiveColor(double distance, Light light, Camera cam, uint1
         fragPos = cam.viewPos + dir * (float)distance;
     }
     
-    //TEST LIGHT RAYTRACE
+    //test shadow or light
+
     
     Vec3f normal = normalAtPoint(fragPos);
     Vec3f lightColor = light.color;

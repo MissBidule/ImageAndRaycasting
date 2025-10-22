@@ -15,7 +15,8 @@ class Primitive {
     protected:
         Color definitiveColor(double distance, Light light, Camera cam, uint16_t x, uint16_t y) const;
         virtual Vec3f normalAtPoint(Vec3f fragPos) const = 0;
-        virtual double isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam) const = 0;
+        virtual double isViewIntersect(uint16_t x, uint16_t y, Camera cam) const = 0;
+        virtual float raytrace(Vec3f rayPos, Vec3f fragPos) const = 0;
         virtual float depthValue(double distance, Camera cam) const = 0;
         
         friend bool sortByDepth(const Primitive& a, const Primitive& b);
