@@ -4,6 +4,10 @@
 
 #include "Circle.hpp"
 #include "GreyImage.hpp"
+#include "Plane.hpp"
+
+const int width = 1200;
+const int height = 1200;
 
 int main(int argc, char* argv [])
 {
@@ -15,8 +19,13 @@ int main(int argc, char* argv [])
 
         //we create light(s)
         Light pointLight {
-            Vec3f{700, 700, 1500},
+            Vec3f{680, 500, 1200},
             Color(255, 255, 255),
+            LightType::POINT
+        };
+        Light pointLight2 {
+            Vec3f{80, 200, 1900},
+            Color(170, 150, 255),
             LightType::POINT
         };
         
@@ -27,7 +36,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.727811, 0.633, 0.633),
             0.6
         };
-        Circle c1(Vec3f{400, 400, 2500}, 300, Mc1);
+        Circle c1(Vec3f{400, 400, 2000}, 300, Mc1);
 
         Material Mc2 {
             Color::colorFromFloat(0.0215, 0.1745, 0.0215),
@@ -35,7 +44,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
         };
-        Circle c2(Vec3f{600, 650, 2300}, 200, Mc2);
+        Circle c2(Vec3f{500, 600, 1700}, 200, Mc2);
 
         Material Mc3 {
             Color::colorFromFloat(0.0215, 0.0215, 0.1745),
@@ -43,26 +52,42 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.633, 0.727811),
             0.6
         };
-        Circle c3(Vec3f{150, 350, 2420}, 100, Mc3);
+        Circle c3(Vec3f{150, 350, 1920}, 100, Mc3);
+        
+        Material Mc4 {
+            Color::colorFromFloat(0.25, 0.20725, 0.20725),
+            Color::colorFromFloat(1, 0.829, 0.829),
+            Color::colorFromFloat(0.296648, 0.296648, 0.296648),
+            0.088
+        };
+        Circle c4(Vec3f{150, 150, 1520}, 50, Mc4);
+        Plane p1(Vec3f{0, 20, 0}, Vec3f{0, 1, 0}, Mc1);
+        Plane p2(Vec3f{780, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
+        Plane p3(Vec3f{0, 780, 0}, Vec3f{0, -1, 0}, Mc1);
+        Plane p4(Vec3f{20, 0, 0}, Vec3f{1, 0, 0}, Mc2);
+        Plane p5(Vec3f{0, 0, 2500}, Vec3f{0, 0, -1}, Mc3);
     
         //our camera defines our final view
         Camera cam {
-            Vec3f{400, 400, 0},
+            Vec3f{width/2, height/2, 0},
             ViewType::ORTHO,
-            800,
-            800,
+            width,
+            height,
             1500
         };
 
         //draw our first picture in orthogonal view
-        ColorImage* orthoImg = Primitive::draw(*img, cam, pointLight);
+        ColorImage* orthoImg = Primitive::draw(*img, cam);
         orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
         
         //change and draw in perspective
         cam.viewType = ViewType::PERSP;
         
-        ColorImage* perspImg = Primitive::draw(*img, cam, pointLight);
+        ColorImage* perspImg = Primitive::draw(*img, cam);
         perspImg->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
+        std::ofstream fo;
+        fo.open("ofpicture/testInPPM.ppm", std::ios::binary);
+        perspImg->writePPM(fo);
         
         delete img;
         delete orthoImg;

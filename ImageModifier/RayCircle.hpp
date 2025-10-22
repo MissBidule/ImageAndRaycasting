@@ -1,3 +1,5 @@
+//unused file
+
 /*#ifndef _RAY_CIRCLE_HPP_
 #define _RAY_CIRCLE_HPP_
 
