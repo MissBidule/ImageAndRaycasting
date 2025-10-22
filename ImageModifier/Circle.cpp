@@ -11,7 +11,7 @@ double Circle::isIntersect(Vec3f rayPos, uint16_t x, uint16_t y, Camera cam) con
     }
     else {
         dir = Vec3f{x - cam.viewPos.x, y - cam.viewPos.y, cam.FOV - cam.viewPos.z}.normalize();
-        OC = Vec3f{pos.x - cam.viewPos.x, pos.y - cam.viewPos.y, pos.z - cam.viewPos.z};
+        OC = pos - cam.viewPos;
     }
     double a = dir.norm2(); //usually 1
     double b = - 2 * OC.dot(dir);
@@ -33,12 +33,34 @@ Color Circle::definitiveColor(double distance, Light light, Camera cam, uint16_t
     else {
         dir = Vec3f{x - cam.viewPos.x, y - cam.viewPos.y, cam.FOV - cam.viewPos.z}.normalize();
     }
-    Vec3f fragPos = cam.viewPos + dir * distance;
-    Vec3f normal = Vec3f{fragPos.x - pos.x, fragPos.y - pos.y, fragPos.z - pos.z}.normalize();
+    
+    Vec3f fragPos = cam.viewPos + dir * (float)distance;
+    //TEST LIGHT RAYTRACE
+    
+    //This is the only thing that circle has in particular
+    Vec3f normal = (fragPos - pos).normalize();
+    //
+    Vec3f lightColor = light.color;
+    Vec3f matAmbient = mat.ambient;
+    Vec3f matDiffuse = mat.diffuse;
+    Vec3f matSpecular = mat.specular;
 
-    //WIP
-
-    return mat.ambient;
+    //ambient
+    Vec3f ambient = lightColor * matAmbient;
+    
+    //diffuse
+    Vec3f lightDir = (light.pos - fragPos).normalize();
+    float diff = std::max(normal.dot(lightDir), 0.0f);
+    Vec3f diffuse = lightColor * matDiffuse * diff;
+    
+    //specular
+    Vec3f viewDir = (cam.viewPos - fragPos).normalize();
+    Vec3f reflectDir = (-lightDir).reflect(normal);
+    float spec = std::pow(std::max(viewDir.dot(reflectDir), 0.0f), mat.shininess);
+    Vec3f specular = matSpecular * lightColor * spec;
+    
+    //result
+    return Color::colorFromVec3f(ambient + diffuse + specular);
 }
 
 float Circle::depthValue(double distance, Camera cam) const {

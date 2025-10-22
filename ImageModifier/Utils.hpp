@@ -23,6 +23,14 @@ struct Vec3 {
     Vec3<t> operator-(const Vec3<t> v) const {
         return Vec3<t>{x-v.x, y-v.y, z-v.z};
     };
+    
+    Vec3<t> operator-() const {
+        return Vec3<t>{-x, -y, -z};
+    };
+    
+    Vec3<t> operator*(const Vec3<t> v) const {
+        return Vec3<t>{x*v.x, y*v.y, z*v.z};
+    };
 
     template <typename u>
     Vec3<t> operator*(u a) const {
@@ -50,6 +58,10 @@ struct Vec3 {
         return Vec3<t>{y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x};
     };
     
+    Vec3<t> reflect(const Vec3<t> v) const {
+        return *this - v * (-2) * this->dot(v);
+    };
+    
     float norm2() const {
         return this->dot(*this);
     };
@@ -70,37 +82,5 @@ struct Vec3 {
 using Vec3f = Vec3<float>;
 using Vec3i = Vec3<int>;
 using Vec3u = Vec3<uint16_t>;
-
-enum ViewType {
-    ORTHO,
-    PERSP
-};
-
-enum LightType {
-    POINT,
-    DIR
-};
-
-struct Camera {
-    Vec3f viewPos;
-    ViewType viewType;
-    int width;
-    int height;
-    int FOV = 1000;
-};
-
-struct Light {
-    Vec3f pos;
-    Color color;
-    LightType type;
-    Vec3f dir; //used only for directional
-};
-
-struct Material {
-    Color ambient;
-    Color diffuse;
-    Color specular;
-    float shininess;
-};
 
 #endif //_utils_hpp

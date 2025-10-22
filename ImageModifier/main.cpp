@@ -16,7 +16,7 @@ int main(int argc, char* argv [])
         //we create light(s)
         Light pointLight {
             Vec3f{700, 700, 1500},
-            Color(150, 150, 150),
+            Color(255, 255, 255),
             LightType::POINT
         };
         

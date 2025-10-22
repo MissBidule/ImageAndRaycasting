@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "ColorImage.hpp"
-#include "Utils.hpp"
+#include "misc.hpp"
 
 class Primitive {
     public:

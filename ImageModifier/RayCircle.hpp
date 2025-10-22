@@ -1,4 +1,4 @@
-#ifndef _RAY_CIRCLE_HPP_
+/*#ifndef _RAY_CIRCLE_HPP_
 #define _RAY_CIRCLE_HPP_
 
 #include "Utils.hpp"
@@ -68,4 +68,4 @@ T depthColor(double distance, T color, Circle& c, ViewType view, uint16_t x0, ui
     return color * ((distance - OC) / - c.r);
 }
 
-#endif //_RAY_CIRCLE_HPP_
+#endif //_RAY_CIRCLE_HPP_*/
