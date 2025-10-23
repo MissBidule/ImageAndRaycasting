@@ -22,17 +22,16 @@ struct Camera {
 };
 
 struct Light {
-    Vec3f pos; //used only for pointlight
+    Vec3f pos; //is dir when dirLight
     Color color;
     LightType type;
-    //float constant;
-//    float linear;
-//    float quadratic;
-    Vec3f dir; //used only for directional
+    float linear;
+    float quadratic;
+    float constant;
     
     static std::vector<Light*> lightList;
     
-    inline Light(Vec3f _pos, Color _color, LightType _type, Vec3f _dir = Vec3f{}) : pos(_pos), color(_color), type(_type), dir(_dir) {
+    inline Light(Vec3f _pos, Color _color, LightType _type, float _linear = 0.0014f, float _quadratic = 0.000007f, float _constant = 1.0f) : pos(_pos), color(_color), type(_type), linear(_linear), quadratic(_quadratic), constant(_constant) {
         lightList.emplace_back(this);
     }
 };

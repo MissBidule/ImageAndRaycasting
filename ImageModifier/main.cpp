@@ -17,16 +17,16 @@ int main(int argc, char* argv [])
         //This is our base which shows if something is missing
         ColorImage* img = ColorImage::readJPEG("ifpicture/cropPic.jpg");
 
-        //we create light(s)
+        // we create light(s)
         Light pointLight {
-            Vec3f{680, 500, 1200},
-            Color(255, 255, 255),
+            Vec3f{280, 100, 900},
+            Color(255, 0, 255),
             LightType::POINT
         };
         Light pointLight2 {
-            Vec3f{80, 200, 1900},
-            Color(170, 150, 255),
-            LightType::POINT
+            Vec3f{0, -1, 1},
+            Color(150, 150, 150),
+            LightType::DIR
         };
         
         //define our primitives and materials
@@ -36,7 +36,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.727811, 0.633, 0.633),
             0.6
         };
-        Circle c1(Vec3f{400, 400, 2000}, 300, Mc1);
+        Circle c1(Vec3f{0, 0, 1500}, 300, Mc1);
 
         Material Mc2 {
             Color::colorFromFloat(0.0215, 0.1745, 0.0215),
@@ -44,7 +44,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
         };
-        Circle c2(Vec3f{500, 600, 1700}, 200, Mc2);
+        Circle c2(Vec3f{100, 200, 1200}, 200, Mc2);
 
         Material Mc3 {
             Color::colorFromFloat(0.0215, 0.0215, 0.1745),
@@ -52,7 +52,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.633, 0.727811),
             0.6
         };
-        Circle c3(Vec3f{150, 350, 1920}, 100, Mc3);
+        Circle c3(Vec3f{-250, -50, 1420}, 100, Mc3);
         
         Material Mc4 {
             Color::colorFromFloat(0.25, 0.20725, 0.20725),
@@ -60,20 +60,26 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.296648, 0.296648, 0.296648),
             0.088
         };
-        Circle c4(Vec3f{150, 150, 1520}, 50, Mc4);
-        Plane p1(Vec3f{0, 20, 0}, Vec3f{0, 1, 0}, Mc1);
-        Plane p2(Vec3f{780, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
-        Plane p3(Vec3f{0, 780, 0}, Vec3f{0, -1, 0}, Mc1);
-        Plane p4(Vec3f{20, 0, 0}, Vec3f{1, 0, 0}, Mc2);
-        Plane p5(Vec3f{0, 0, 2500}, Vec3f{0, 0, -1}, Mc3);
+        Circle c4(Vec3f{-250, -250, 1320}, 50, Mc4);
+        Material Mc5 {
+            Color::colorFromFloat(0.20725, 0.20725, 0.20725),
+            Color::colorFromFloat(0.7, 0.7, 0.7),
+            Color::colorFromFloat(0.296648, 0.296648, 0.296648),
+            0.088
+        };
+        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc1);
+        //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
+        //Plane p3(Vec3f{0, 380, 0}, Vec3f{0, -1, 0}, Mc1);
+        //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
+        Plane p5(Vec3f{0, 0, 2200}, Vec3f{0, 0, -1}, Mc5);
     
         //our camera defines our final view
         Camera cam {
-            Vec3f{width/2, height/2, 0},
+            Vec3f{0, 0, 0},
             ViewType::ORTHO,
             width,
             height,
-            1500
+            1300
         };
 
         //draw our first picture in orthogonal view

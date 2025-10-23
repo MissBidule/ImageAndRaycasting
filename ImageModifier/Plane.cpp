@@ -9,15 +9,13 @@ double Plane::isViewIntersect(uint16_t x, uint16_t y, Camera cam) const {
         dir = Vec3f{0, 0, 1};
     }
     else {
-        dir = Vec3f{x - cam.viewPos.x, y - cam.viewPos.y, cam.FOV - cam.viewPos.z}.normalize();
+        dir = Vec3f{x - (float)cam.width/2, - y + (float)cam.height/2, (float)cam.FOV}.normalize();
     }
 
     return intersection(dir, cam.viewPos);
 }
 
-float Plane::raytrace(Vec3f rayPos, Vec3f fragPos) const {
-    Vec3f dir = (fragPos - rayPos).normalize();
-    
+float Plane::raytrace(Vec3f rayPos, Vec3f dir) const {
     return intersection(dir, rayPos);
 }
 
