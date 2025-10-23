@@ -291,6 +291,7 @@
 					"$(inherited)",
 					/opt/homebrew/Cellar/jpeg/9f/lib,
 				);
+				LINK_WITH_STANDARD_LIBRARIES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -303,6 +304,7 @@
 					"$(inherited)",
 					/opt/homebrew/Cellar/jpeg/9f/lib,
 				);
+				LINK_WITH_STANDARD_LIBRARIES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

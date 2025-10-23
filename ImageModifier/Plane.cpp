@@ -2,7 +2,7 @@
 
 Plane::Plane(Vec3f pos, Vec3f _normal, Material mat) : Primitive(pos, mat), normal(_normal.normalize()) {}
 
-double Plane::isViewIntersect(uint16_t x, uint16_t y, Camera cam) const {
+double Plane::isViewIntersect(float x, float y, Camera cam) const {
     Vec3f dir;
     
     if (cam.viewType == ViewType::ORTHO) {

@@ -22,27 +22,36 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam) {
     size_t index = 0;
     double distance = -1;
     double temp;
-    for (uint16_t j = 0; j < cam.height; j++) {
-        for (uint16_t i = 0; i < cam.width; i++) {
-            index = 0;
-            distance = -1;
-            for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->isViewIntersect(i, j, cam);
-                if ((temp != -1 && temp < distance) || distance == -1) {
-                    distance = temp;
-                    index = u;
+    for (float j = 0; j < cam.height; j++) {
+        for (float i = 0; i < cam.width; i++) {
+            Vec3f colorMix{0, 0, 0};
+            float hit = 0;
+            for (float l = 0.25f; l < 1; l += 0.5f) {
+                for (float k = 0.25f; k < 1; k += 0.5f) {
+                    index = 0;
+                    distance = -1;
+                    for (size_t u = 0; u < objectList.size(); u ++) {
+                        temp = objectList[u]->isViewIntersect(i + k, j + l, cam);
+                        if ((temp != -1 && temp < distance) || distance == -1) {
+                            distance = temp;
+                            index = u;
+                        }
+                    }
+                    
+                    if (distance >= 0) {
+                        colorMix = colorMix + objectList[index]->definitiveColor(distance, cam, i + k, j + l);
+                        hit++;
+                    }
                 }
             }
-            if (distance >= 0) {
-                returnImg->pixel(i, j) = Color::colorFromVec3f(objectList[index]->definitiveColor(distance, cam, i, j));
-            }
+            returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / hit);
         }
     }
 
     return returnImg;
 }
 
-Vec3f Primitive::definitiveColor(double distance, Camera cam, uint16_t x, uint16_t y) const {
+Vec3f Primitive::definitiveColor(double distance, Camera cam, float x, float y) const {
     Vec3f dir;
     Vec3f fragPos;
     if (cam.viewType == ViewType::ORTHO) {

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "ColorImage.hpp"
-#include "misc.hpp"
+#include "Misc.hpp"
 
 class Primitive {
     public:
@@ -13,9 +13,9 @@ class Primitive {
         static ColorImage* draw(const ColorImage& img, Camera cam);
 
     protected:
-        Vec3f definitiveColor(double distance, Camera cam, uint16_t x, uint16_t y) const;
+        Vec3f definitiveColor(double distance, Camera cam, float x, float y) const;
         virtual Vec3f normalAtPoint(Vec3f fragPos) const = 0;
-        virtual double isViewIntersect(uint16_t x, uint16_t y, Camera cam) const = 0;
+        virtual double isViewIntersect(float x, float y, Camera cam) const = 0;
         virtual float raytrace(Vec3f rayPos, Vec3f dir) const = 0;
         
         friend bool sortByDepth(const Primitive& a, const Primitive& b);

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <chrono>
+
 #include "Circle.hpp"
 #include "GreyImage.hpp"
 #include "Plane.hpp"
@@ -81,19 +83,29 @@ int main(int argc, char* argv [])
             height,
             1300
         };
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
         //draw our first picture in orthogonal view
         ColorImage* orthoImg = Primitive::draw(*img, cam);
+        
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        
         orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
+        
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
         
         //change and draw in perspective
         cam.viewType = ViewType::PERSP;
         
+        end = std::chrono::steady_clock::now();
+        
         ColorImage* perspImg = Primitive::draw(*img, cam);
+        
+        end = std::chrono::steady_clock::now();
+        
         perspImg->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
-        std::ofstream fo;
-        fo.open("ofpicture/testInPPM.ppm", std::ios::binary);
-        perspImg->writePPM(fo);
+        
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
         
         delete img;
         delete orthoImg;

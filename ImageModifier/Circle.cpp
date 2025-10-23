@@ -2,7 +2,7 @@
 
 Circle::Circle(Vec3f pos, float _radius, Material mat) : Primitive(pos, mat), radius(_radius) {}
 
-double Circle::isViewIntersect(uint16_t x, uint16_t y, Camera cam) const {
+double Circle::isViewIntersect(float x, float y, Camera cam) const {
     Vec3f dir;
     Vec3f OC;
     

@@ -9,7 +9,7 @@ class Circle : public Primitive {
 
     private:
         Vec3f normalAtPoint(Vec3f fragPos) const override;
-        double isViewIntersect( uint16_t x, uint16_t y, Camera cam) const override;
+        double isViewIntersect(float x, float y, Camera cam) const override;
         float raytrace(Vec3f rayPos, Vec3f dir) const override;
         double intersection(Vec3f dir, Vec3f OC) const;
         float depthValue(double distance, Camera cam) const;
