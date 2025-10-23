@@ -19,13 +19,13 @@ int main(int argc, char* argv [])
         //This is our base which shows if something is missing
         ColorImage* img = ColorImage::readJPEG("ifpicture/cropPic.jpg");
 
-        // we create light(s)
+//         we create light(s)
         Light pointLight {
             Vec3f{280, 100, 900},
-            Color(255, 0, 255),
+            Color(255, 255, 255),
             LightType::POINT
         };
-        Light pointLight2 {
+        Light dirLight {
             Vec3f{0, -1, 1},
             Color(150, 150, 150),
             LightType::DIR
@@ -71,7 +71,7 @@ int main(int argc, char* argv [])
         };
         Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc1);
         //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
-        //Plane p3(Vec3f{0, 380, 0}, Vec3f{0, -1, 0}, Mc1);
+//        Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
         Plane p5(Vec3f{0, 0, 2200}, Vec3f{0, 0, -1}, Mc5);
     

@@ -19,7 +19,7 @@ double Circle::isViewIntersect(float x, float y, Camera cam) const {
 }
 
 float Circle::raytrace(Vec3f rayPos, Vec3f dir) const {
-    Vec3f OC = pos - rayPos;
+    Vec3f OC = pos - (rayPos + dir * offset);
     
     return intersection(dir, OC);
 }

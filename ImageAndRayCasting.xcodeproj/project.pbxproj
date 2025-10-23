@@ -27,15 +27,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		64EEA7A32E8AF896002EB390 /* ImageModifier */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ImageModifier; sourceTree = BUILT_PRODUCTS_DIR; };
+		64EEA7A32E8AF896002EB390 /* src */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = src; sourceTree = BUILT_PRODUCTS_DIR; };
 		64EEA7B32E8AF8BD002EB390 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		64EEA7BA2E8B0108002EB390 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjpeg.9.dylib; path = ../../../../../opt/homebrew/Cellar/jpeg/9f/lib/libjpeg.9.dylib; sourceTree = "<group>"; };
-		64EEA8722E8B0672002EB390 /* ifpicture */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ifpicture; path = ImageModifier/ifpicture; sourceTree = "<group>"; };
-		64EEA8742E8B06B9002EB390 /* ofpicture */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ofpicture; path = ImageModifier/ofpicture; sourceTree = "<group>"; };
+		64EEA8722E8B0672002EB390 /* ifpicture */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ifpicture; path = src/ifpicture; sourceTree = "<group>"; };
+		64EEA8742E8B06B9002EB390 /* ofpicture */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ofpicture; path = src/ofpicture; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		64EEA8D52E8FFD4F002EB390 /* Exceptions for "ImageModifier" folder in "Compile Sources" phase from "ImageModifier" target */ = {
+		64EEA8D52E8FFD4F002EB390 /* Exceptions for "src" folder in "Compile Sources" phase from "src" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 64EEA79F2E8AF896002EB390 /* Sources */;
 			membershipExceptions = (
@@ -45,12 +45,12 @@
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		64EEA7A52E8AF896002EB390 /* ImageModifier */ = {
+		64EEA7A52E8AF896002EB390 /* src */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				64EEA8D52E8FFD4F002EB390 /* Exceptions for "ImageModifier" folder in "Compile Sources" phase from "ImageModifier" target */,
+				64EEA8D52E8FFD4F002EB390 /* Exceptions for "src" folder in "Compile Sources" phase from "src" target */,
 			);
-			path = ImageModifier;
+			path = src;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -72,7 +72,7 @@
 			children = (
 				64EEA8742E8B06B9002EB390 /* ofpicture */,
 				64EEA8722E8B0672002EB390 /* ifpicture */,
-				64EEA7A52E8AF896002EB390 /* ImageModifier */,
+				64EEA7A52E8AF896002EB390 /* src */,
 				64EEA7A42E8AF896002EB390 /* Products */,
 				64EEA7B32E8AF8BD002EB390 /* README.md */,
 				64EEA7B92E8B0108002EB390 /* Frameworks */,
@@ -82,7 +82,7 @@
 		64EEA7A42E8AF896002EB390 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				64EEA7A32E8AF896002EB390 /* ImageModifier */,
+				64EEA7A32E8AF896002EB390 /* src */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -98,9 +98,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		64EEA7A22E8AF896002EB390 /* ImageModifier */ = {
+		64EEA7A22E8AF896002EB390 /* src */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 64EEA7AA2E8AF896002EB390 /* Build configuration list for PBXNativeTarget "ImageModifier" */;
+			buildConfigurationList = 64EEA7AA2E8AF896002EB390 /* Build configuration list for PBXNativeTarget "src" */;
 			buildPhases = (
 				64EEA79F2E8AF896002EB390 /* Sources */,
 				64EEA7A02E8AF896002EB390 /* Frameworks */,
@@ -111,13 +111,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				64EEA7A52E8AF896002EB390 /* ImageModifier */,
+				64EEA7A52E8AF896002EB390 /* src */,
 			);
-			name = ImageModifier;
+			name = src;
 			packageProductDependencies = (
 			);
-			productName = ImageModifier;
-			productReference = 64EEA7A32E8AF896002EB390 /* ImageModifier */;
+			productName = src;
+			productReference = 64EEA7A32E8AF896002EB390 /* src */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -134,7 +134,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 64EEA79E2E8AF896002EB390 /* Build configuration list for PBXProject "ImageModifier" */;
+			buildConfigurationList = 64EEA79E2E8AF896002EB390 /* Build configuration list for PBXProject "src" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -148,7 +148,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				64EEA7A22E8AF896002EB390 /* ImageModifier */,
+				64EEA7A22E8AF896002EB390 /* src */,
 			);
 		};
 /* End PBXProject section */
@@ -312,7 +312,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		64EEA79E2E8AF896002EB390 /* Build configuration list for PBXProject "ImageModifier" */ = {
+		64EEA79E2E8AF896002EB390 /* Build configuration list for PBXProject "src" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				64EEA7A82E8AF896002EB390 /* Debug */,
@@ -321,7 +321,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		64EEA7AA2E8AF896002EB390 /* Build configuration list for PBXNativeTarget "ImageModifier" */ = {
+		64EEA7AA2E8AF896002EB390 /* Build configuration list for PBXNativeTarget "src" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				64EEA7AB2E8AF896002EB390 /* Debug */,

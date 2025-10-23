@@ -44,7 +44,7 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam) {
                     }
                 }
             }
-            returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / hit);
+            returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / (hit > 0.0f ? hit : 1.0f));
         }
     }
 
@@ -66,7 +66,6 @@ Vec3f Primitive::definitiveColor(double distance, Camera cam, float x, float y) 
     //test shadow or light
     Vec3f finalColor = Vec3f{0, 0, 0};
     for (size_t i = 0; i < Light::lightList.size(); i++) {
-        double lightDistance = -1;
         double temp;
         const Light currentLight = *Light::lightList[i];
         Vec3f lightColor = currentLight.color;
@@ -75,28 +74,29 @@ Vec3f Primitive::definitiveColor(double distance, Camera cam, float x, float y) 
         float attenuation = 1.0f;
 
         if (currentLight.type == LightType::POINT) {
-            Vec3f ray = (fragPos - currentLight.pos);
-            float distance = (-ray).norm();
-            attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)); 
+            Vec3f ray = currentLight.pos - fragPos;
+            float distance = ray.norm();
+            attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
+            bool obstacle = false;
             for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->raytrace(currentLight.pos, ray.normalize());
-                if ((temp != -1 && temp < lightDistance) || lightDistance == -1) {
-                    lightDistance = temp;
+                temp = objectList[u]->raytrace(fragPos, ray.normalize());
+                if (temp != -1 && abs(temp - distance) < offset) {
+                    obstacle = true;
+                    break;
                 }
             }
 
-            Vec3f lightBlock = currentLight.pos + ray.normalize() * (float)lightDistance;
-            if ((fragPos - lightBlock).norm() > offset) {
+            if (obstacle) {
                 finalColor = finalColor + lightColor * matAmbient * attenuation;
                 continue;
             }
-            lightDir = (-ray).normalize();
+            lightDir = ray.normalize();
         }
         else if (currentLight.type == LightType::DIR) {
             lightDir = (- currentLight.pos).normalize();
             bool obstacle = false;
             for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->raytrace(fragPos + lightDir * offset, lightDir);
+                temp = objectList[u]->raytrace(fragPos, lightDir);
                 if (temp != -1) {
                     obstacle = true;
                     break;

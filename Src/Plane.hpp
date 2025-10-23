@@ -11,7 +11,7 @@ class Plane : public Primitive {
         Vec3f normalAtPoint(Vec3f fragPos) const override;
         double isViewIntersect(float x, float y, Camera cam) const override;
         float raytrace(Vec3f rayPos, Vec3f dir) const override;
-        double intersection(Vec3f dir, Vec3f rayPos) const;
+        double intersection(Vec3f rayPos, Vec3f dir) const;
 
         Vec3f normal;
 };
