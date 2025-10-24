@@ -15,6 +15,7 @@ class Primitive {
 
     protected:
         static Vec3f definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t depth = 5);
+        Vec3f transparentCalculation(Vec3f fragPos, Vec3f dir, Vec3f camPos, uint8_t depth);
         Vec3f diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance);
         Vec3f phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, float attenuation);
         bool retrieveNormalDir(Vec3f normal, Vec3f rayDir) const;

@@ -60,12 +60,10 @@ int main(int argc, char* argv [])
         };
         Circle c3(Vec3f{-450, -50, 1420}, 100, Mc3);
         
-        Material Mc4 {
-            Color::colorFromFloat(0.25, 0.20725, 0.20725),
-            Color::colorFromFloat(1, 0.829, 0.829),
-            Color::colorFromFloat(0.296648, 0.296648, 0.296648),
-            0.088
-        };
+        Material Mc4 {Color::colorFromFloat(1, 1, 0)};
+        Mc4.alpha = 0.5f;
+        Mc4.ior = 1;
+        Mc4.type = MaterialType::TRANSPARENT;
         Circle c4(Vec3f{-250, -250, 1320}, 50, Mc4);
         Material Mc5 {
             Color::colorFromFloat(0.20725, 0.20725, 0.20725),
@@ -73,7 +71,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.296648, 0.296648, 0.296648),
             0.088
         };
-        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc0);
+        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc5);
         //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
 //        Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);

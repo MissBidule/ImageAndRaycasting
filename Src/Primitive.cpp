@@ -80,8 +80,8 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t de
             
             break;
         case MaterialType::TRANSPARENT:
-            
-            //
+
+            return objectList[index]->transparentCalculation(fragPos, camPos, dir, depth);
 
             break;
         case MaterialType::REFLECTIVE:
@@ -97,6 +97,28 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t de
     return defaultColor;
 }
 
+Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f dir, Vec3f camPos, uint8_t depth) {
+
+    Vec3f normal = normalAtPoint(fragPos, dir);
+    double ri = retrieveNormalDir(normal, dir) ? 1.0 / mat.ior : mat.ior;
+    double cosTheta = std::fmin(-dir.dot(normal), 1.0);
+    double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
+    bool canRefract = ri * sinTheta <= 1.0f;
+    double kr = 1;
+
+    Vec3f refractionDir;
+    Vec3f refractColor;
+    if (canRefract) {
+        Vec3f refractionDir = dir.refract(normal, ri);
+        Vec3f refractColor = definitiveColor(fragPos, refractionDir, camPos, --depth);
+        kr = Material::reflectance(cosTheta, ri);
+    }
+    // Vec3f reflectionDir = (dir.reflect(normal)).normalize();
+    // Vec3f reflectColor = definitiveColor(fragPos, reflectionDir, camPos, --depth);
+
+    return refractColor;//reflectColor * (float)kr + refractColor * (1 - (float)kr)  + objectList[index]->mat.ambient * objectList[index]->mat.alpha;
+}
+
 Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance) {    
     //test shadow or light
     Vec3f finalColor = Vec3f{0, 0, 0};
@@ -104,9 +126,9 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
         double temp;
         const Light currentLight = *Light::lightList[i];
         float attenuation = 1.0f;
-        bool obstacle = false;
         Vec3f lightColor = currentLight.color;
         Vec3f lightDir;
+        float shadowAlpha = 0;
 
         if (currentLight.type == LightType::POINT) {
             Vec3f ray = currentLight.pos - fragPos;
@@ -114,9 +136,19 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
             attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
             for (size_t u = 0; u < objectList.size(); u ++) {
                 temp = objectList[u]->raytrace(fragPos, ray.normalize());
-                if (temp != -1 && abs(temp - distance) < offset) {
-                    obstacle = true;
-                    break;
+                if (temp != -1 && (temp - distance) < offset) {
+                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += objectList[u]->mat.alpha;
+                        if (shadowAlpha >= 1) {
+                            shadowAlpha = 1;
+                            break;
+                        }
+                        lightColor = lightColor + ((Vec3f)objectList[u]->mat.ambient * objectList[u]->mat.alpha);
+                    }
+                    else {
+                        shadowAlpha = 1;
+                        break;
+                    }
                 }
             }
             lightDir = ray.normalize();
@@ -126,18 +158,24 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
             for (size_t u = 0; u < objectList.size(); u ++) {
                 temp = objectList[u]->raytrace(fragPos, lightDir);
                 if (temp != -1) {
-                    obstacle = true;
-                    break;
+                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += objectList[u]->mat.alpha;
+                        if (shadowAlpha >= 1) {
+                            shadowAlpha = 1;
+                            break;
+                        }
+                        lightColor = lightColor + ((Vec3f)objectList[u]->mat.ambient * objectList[u]->mat.alpha);
+                    }
+                    else {
+                        shadowAlpha = 1;
+                        break;
+                    }
                 }
             }
         }
-        if (obstacle) {
-            finalColor = finalColor + lightColor * (Vec3f)mat.ambient * attenuation;
-            continue;
-        }
 
         //final color
-        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, attenuation);
+        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat.ambient * shadowAlpha * attenuation;
     }
 
     return finalColor;
