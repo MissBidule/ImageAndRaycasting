@@ -2,20 +2,7 @@
 
 Plane::Plane(Vec3f pos, Vec3f _normal, Material mat) : Primitive(pos, mat), normal(_normal.normalize()) {}
 
-double Plane::isViewIntersect(float x, float y, Camera cam) const {
-    Vec3f dir;
-    
-    if (cam.viewType == ViewType::ORTHO) {
-        dir = Vec3f{0, 0, 1};
-    }
-    else {
-        dir = Vec3f{x - (float)cam.width/2, - y + (float)cam.height/2, (float)cam.FOV}.normalize();
-    }
-
-    return intersection(cam.viewPos, dir);
-}
-
-float Plane::raytrace(Vec3f rayPos, Vec3f dir) const {
+double Plane::raytrace(Vec3f rayPos, Vec3f dir) const {
     return intersection(rayPos + dir * offset, dir);
 }
 
@@ -30,6 +17,6 @@ double Plane::intersection(Vec3f rayPos, Vec3f dir) const {
     return t > 0 ? t : -1 ;
 }
 
-Vec3f Plane::normalAtPoint(Vec3f fragPos) const {
-    return normal;
+Vec3f Plane::normalAtPoint(Vec3f fragPos, Vec3f rayDir) const {
+    return normal * (2 *(retrieveNormalDir(normal, rayDir)) - 1);
 }

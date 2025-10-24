@@ -22,7 +22,7 @@ int main(int argc, char* argv [])
 //         we create light(s)
         Light pointLight {
             Vec3f{280, 100, 900},
-            Color(255, 255, 255),
+            Color(170, 0, 170),
             LightType::POINT
         };
         Light dirLight {
@@ -32,12 +32,16 @@ int main(int argc, char* argv [])
         };
         
         //define our primitives and materials
-        Material Mc1 {
+        Material Mc0 {
             Color::colorFromFloat(0.1745, 0.0215, 0.0215),
             Color::colorFromFloat(0.61424, 0.07568, 0.07568),
             Color::colorFromFloat(0.727811, 0.633, 0.633),
             0.6
         };
+        Circle c0(Vec3f{0, 0, -310}, 300, Mc0);
+
+        Material Mc1 {Color::colorFromFloat(0.1, 0.1, 0.1)};
+        Mc1.type = MaterialType::REFLECTIVE;
         Circle c1(Vec3f{0, 0, 1500}, 300, Mc1);
 
         Material Mc2 {
@@ -46,7 +50,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
         };
-        Circle c2(Vec3f{100, 200, 1200}, 200, Mc2);
+        Circle c2(Vec3f{100, 300, 1300}, 200, Mc2);
 
         Material Mc3 {
             Color::colorFromFloat(0.0215, 0.0215, 0.1745),
@@ -54,7 +58,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.633, 0.727811),
             0.6
         };
-        Circle c3(Vec3f{-250, -50, 1420}, 100, Mc3);
+        Circle c3(Vec3f{-450, -50, 1420}, 100, Mc3);
         
         Material Mc4 {
             Color::colorFromFloat(0.25, 0.20725, 0.20725),
@@ -69,7 +73,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.296648, 0.296648, 0.296648),
             0.088
         };
-        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc1);
+        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc0);
         //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
 //        Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
@@ -92,20 +96,20 @@ int main(int argc, char* argv [])
         
         orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
         
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho" << std::endl;
         
         //change and draw in perspective
         cam.viewType = ViewType::PERSP;
         
         end = std::chrono::steady_clock::now();
         
-        ColorImage* perspImg = Primitive::draw(*img, cam);
+        ColorImage* perspImg = Primitive::draw(*img, cam, 8);
         
         end = std::chrono::steady_clock::now();
         
         perspImg->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
         
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for persp" << std::endl;
         
         delete img;
         delete orthoImg;

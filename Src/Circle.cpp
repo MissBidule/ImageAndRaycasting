@@ -2,23 +2,7 @@
 
 Circle::Circle(Vec3f pos, float _radius, Material mat) : Primitive(pos, mat), radius(_radius) {}
 
-double Circle::isViewIntersect(float x, float y, Camera cam) const {
-    Vec3f dir;
-    Vec3f OC;
-    
-    if (cam.viewType == ViewType::ORTHO) {
-        dir = Vec3f{0, 0, 1};
-        OC = Vec3f{pos.x - (cam.viewPos.x - cam.width/2 + x), pos.y + (cam.viewPos.y - cam.height/2 + y), pos.z - (cam.viewPos.z)};
-    }
-    else {
-        dir = Vec3f{x - (float)cam.width/2, - y + (float)cam.height/2, (float)cam.FOV}.normalize();
-        OC = pos - cam.viewPos;
-    }
-
-    return intersection(dir, OC);
-}
-
-float Circle::raytrace(Vec3f rayPos, Vec3f dir) const {
+double Circle::raytrace(Vec3f rayPos, Vec3f dir) const {
     Vec3f OC = pos - (rayPos + dir * offset);
     
     return intersection(dir, OC);
@@ -37,8 +21,9 @@ double Circle::intersection(Vec3f dir, Vec3f OC) const {
     return -1;
 }
 
-Vec3f Circle::normalAtPoint(Vec3f fragPos) const {
-    return (fragPos - pos).normalize();
+Vec3f Circle::normalAtPoint(Vec3f fragPos, Vec3f rayDir) const {
+    Vec3f outwardNormal = (fragPos - pos).normalize();
+    return outwardNormal * (2 *(retrieveNormalDir(outwardNormal, rayDir)) - 1);
 }
 
 float Circle::depthValue(double distance, Camera cam) const {

@@ -2,6 +2,7 @@
 
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
+Vec3f Primitive::defaultColor = Vec3f{1, 1, 1};
 
 //maybe too costly in time
 bool sortByDepth(const Primitive& a, const Primitive& b)
@@ -14,34 +15,29 @@ Primitive::Primitive(Vec3f _pos, Material _mat) : pos(_pos), mat(_mat) {
     objectList.emplace_back(this);
 }
 
-ColorImage* Primitive::draw(const ColorImage& img, Camera cam) {
+ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
     //bilinear scale ensures the picture is the size of the output camera
     ColorImage* returnImg = img.bilinearScale(cam.width, cam.height);
+    //works better with pow 2 values
+    if (samples < 1) samples = 2;
 
     //raytrace the shapes for each pixel    
-    size_t index = 0;
-    double distance = -1;
-    double temp;
     for (float j = 0; j < cam.height; j++) {
         for (float i = 0; i < cam.width; i++) {
+            //rand samples ?
             Vec3f colorMix{0, 0, 0};
             float hit = 0;
-            for (float l = 0.25f; l < 1; l += 0.5f) {
-                for (float k = 0.25f; k < 1; k += 0.5f) {
-                    index = 0;
-                    distance = -1;
-                    for (size_t u = 0; u < objectList.size(); u ++) {
-                        temp = objectList[u]->isViewIntersect(i + k, j + l, cam);
-                        if ((temp != -1 && temp < distance) || distance == -1) {
-                            distance = temp;
-                            index = u;
-                        }
+            for (float l = 1/(float)samples; l < 1; l += 2/(float)samples) {
+                for (float k = 1/(float)samples; k < 1; k += 2/(float)samples) {
+                    if (cam.viewType == ViewType::ORTHO) {
+                        Vec3f rayOrig{(cam.viewPos.x - cam.width/2 + i + k), - (cam.viewPos.y - cam.height/2 + j + l), (cam.viewPos.z)};
+                        colorMix = colorMix + Primitive::definitiveColor(rayOrig, Vec3f{0, 0, 1}, cam.viewPos);
                     }
-                    
-                    if (distance >= 0) {
-                        colorMix = colorMix + objectList[index]->definitiveColor(distance, cam, i + k, j + l);
-                        hit++;
+                    else {
+                        Vec3f rayDir = Vec3f{i + k - (float)cam.width/2, - (j + l) + (float)cam.height/2, (float)cam.FOV}.normalize();
+                        colorMix = colorMix + Primitive::definitiveColor(cam.viewPos, rayDir, cam.viewPos);
                     }
+                    hit++;//could be samples
                 }
             }
             returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / (hit > 0.0f ? hit : 1.0f));
@@ -51,33 +47,71 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam) {
     return returnImg;
 }
 
-Vec3f Primitive::definitiveColor(double distance, Camera cam, float x, float y) const {
-    Vec3f dir;
-    Vec3f fragPos;
-    if (cam.viewType == ViewType::ORTHO) {
-        dir = Vec3f{0, 0, 1};
-        fragPos = Vec3f{cam.viewPos.x - cam.width/2 + x, -(cam.viewPos.y - cam.height/2 + y), cam.viewPos.z} + dir * (float)distance;
-    }
-    else {
-        dir = Vec3f{x - (float)cam.width/2, - y + (float)cam.height/2, (float)cam.FOV}.normalize();
-        fragPos = cam.viewPos + dir * (float)distance;
+Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t depth) {
+    if (depth == 0) {
+        return defaultColor;
     }
     
+    size_t index = 0;
+    double distance = -1;
+    double temp;
+    index = 0;
+    distance = -1;
+    for (size_t u = 0; u < objectList.size(); u ++) {
+        temp = objectList[u]->raytrace(orig, dir);
+        if ((temp != -1 && temp < distance) || distance == -1) {
+            distance = temp;
+            index = u;
+        }
+    }
+    
+    if (distance <= 0) {
+        return defaultColor;
+    }
+    
+    Vec3f fragPos = orig + dir * (float)distance;
+    Vec3f reflectionDir;
+
+    switch (objectList[index]->mat.type)
+    {
+        case MaterialType::DIFFUSE:
+
+            return objectList[index]->diffuseCalculation(fragPos, camPos, distance);
+            
+            break;
+        case MaterialType::TRANSPARENT:
+            
+            //
+
+            break;
+        case MaterialType::REFLECTIVE:
+            
+            reflectionDir = (dir.reflect(objectList[index]->normalAtPoint(fragPos))).normalize();
+            return definitiveColor(fragPos, reflectionDir, camPos, --depth) + objectList[index]->mat.ambient;
+
+            break;
+        default:
+            break;
+    }
+
+    return defaultColor;
+}
+
+Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance) {    
     //test shadow or light
     Vec3f finalColor = Vec3f{0, 0, 0};
     for (size_t i = 0; i < Light::lightList.size(); i++) {
         double temp;
         const Light currentLight = *Light::lightList[i];
-        Vec3f lightColor = currentLight.color;
-        Vec3f matAmbient = mat.ambient;
-        Vec3f lightDir;
         float attenuation = 1.0f;
+        bool obstacle = false;
+        Vec3f lightColor = currentLight.color;
+        Vec3f lightDir;
 
         if (currentLight.type == LightType::POINT) {
             Vec3f ray = currentLight.pos - fragPos;
             float distance = ray.norm();
             attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
-            bool obstacle = false;
             for (size_t u = 0; u < objectList.size(); u ++) {
                 temp = objectList[u]->raytrace(fragPos, ray.normalize());
                 if (temp != -1 && abs(temp - distance) < offset) {
@@ -85,16 +119,10 @@ Vec3f Primitive::definitiveColor(double distance, Camera cam, float x, float y) 
                     break;
                 }
             }
-
-            if (obstacle) {
-                finalColor = finalColor + lightColor * matAmbient * attenuation;
-                continue;
-            }
             lightDir = ray.normalize();
         }
         else if (currentLight.type == LightType::DIR) {
             lightDir = (- currentLight.pos).normalize();
-            bool obstacle = false;
             for (size_t u = 0; u < objectList.size(); u ++) {
                 temp = objectList[u]->raytrace(fragPos, lightDir);
                 if (temp != -1) {
@@ -102,31 +130,41 @@ Vec3f Primitive::definitiveColor(double distance, Camera cam, float x, float y) 
                     break;
                 }
             }
-            if (obstacle) {
-                finalColor = finalColor + lightColor * matAmbient;
-                continue;
-            }
         }
-        
-        Vec3f normal = normalAtPoint(fragPos);
-        Vec3f matDiffuse = mat.diffuse;
-        Vec3f matSpecular = mat.specular;
-        
-        //ambient
-        Vec3f ambient = lightColor * matAmbient * attenuation;
-        
-        //diffuse
-        float diff = std::max(normal.dot(lightDir), 0.0f);
-        Vec3f diffuse = lightColor * matDiffuse * diff * attenuation;
-        
-        //specular
-        Vec3f viewDir = (cam.viewPos - fragPos).normalize();
-        Vec3f reflectDir = (-lightDir).reflect(normal);
-        float spec = std::pow(std::max(viewDir.dot(reflectDir), 0.0f), mat.shininess * 128);
-        Vec3f specular = matSpecular * lightColor * spec * attenuation;
+        if (obstacle) {
+            finalColor = finalColor + lightColor * (Vec3f)mat.ambient * attenuation;
+            continue;
+        }
+
         //final color
-        finalColor = finalColor + ambient + diffuse + specular;
+        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, attenuation);
     }
-    //result
+
     return finalColor;
+}
+
+bool Primitive::retrieveNormalDir(Vec3f normal, Vec3f rayDir) const {
+    return rayDir.dot(normal) <= 0;
+}
+
+Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, float attenuation) {
+    Vec3f normal = normalAtPoint(fragPos);
+    Vec3f matAmbient = mat.ambient;
+    Vec3f matDiffuse = mat.diffuse;
+    Vec3f matSpecular = mat.specular;
+    
+    //ambient
+    Vec3f ambient = lightColor * matAmbient * attenuation;
+    
+    //diffuse
+    float diff = std::max(normal.dot(lightDir), 0.0f);
+    Vec3f diffuse = lightColor * matDiffuse * diff * attenuation;
+    
+    //specular
+    Vec3f viewDir = (camPos - fragPos).normalize();
+    Vec3f reflectDir = (-lightDir).reflect(normal);
+    float spec = std::pow(std::max(viewDir.dot(reflectDir), 0.0f), mat.shininess * 128);
+    Vec3f specular = matSpecular * lightColor * spec * attenuation;
+
+    return ambient + diffuse + specular;
 }

@@ -13,6 +13,12 @@ enum LightType {
     DIR
 };
 
+enum MaterialType {
+    DIFFUSE,
+    TRANSPARENT,
+    REFLECTIVE
+};
+
 struct Camera {
     Vec3f viewPos;
     ViewType viewType;
@@ -37,10 +43,20 @@ struct Light {
 };
 
 struct Material {
-    Color ambient;
-    Color diffuse;
-    Color specular;
-    float shininess;
+    Color ambient = Color();
+    Color diffuse = Color();
+    Color specular = Color();
+    float shininess = 0;
+    float alpha = 1; //only used with transparent
+    float ior = 1;//only used with transparent
+
+    MaterialType type = MaterialType::DIFFUSE;
+
+    static double reflectance(double cosine, double refractionIndex) {
+        float r0 = (1 - refractionIndex) / (1 + refractionIndex);
+        r0 *= r0;
+        return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+    }
 };
 
 #endif // _MISC_HPP_ miscellaneous
