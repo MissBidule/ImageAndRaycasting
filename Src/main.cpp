@@ -22,7 +22,7 @@ int main(int argc, char* argv [])
 //         we create light(s)
         Light pointLight {
             Vec3f{280, 100, 900},
-            Color(170, 0, 170),
+            Color(170, 170, 170),
             LightType::POINT
         };
         Light dirLight {
@@ -40,9 +40,13 @@ int main(int argc, char* argv [])
         };
         Circle c0(Vec3f{0, 0, -310}, 300, Mc0);
 
+        Material Mc4 {Color::colorFromFloat(1, 1, 0)};
+        Mc4.alpha = 0.1f;
+        Mc4.ior = 1.5f;
+        Mc4.type = MaterialType::TRANSPARENT;
         Material Mc1 {Color::colorFromFloat(0.1, 0.1, 0.1)};
         Mc1.type = MaterialType::REFLECTIVE;
-        Circle c1(Vec3f{0, 0, 1500}, 300, Mc1);
+        Circle c1(Vec3f{0, -200, 1500}, 300, Mc4);
 
         Material Mc2 {
             Color::colorFromFloat(0.0215, 0.1745, 0.0215),
@@ -50,7 +54,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
         };
-        Circle c2(Vec3f{100, 300, 1300}, 200, Mc2);
+        Circle c2(Vec3f{0, 0, 2000}, 200, Mc2);
 
         Material Mc3 {
             Color::colorFromFloat(0.0215, 0.0215, 0.1745),
@@ -60,11 +64,7 @@ int main(int argc, char* argv [])
         };
         Circle c3(Vec3f{-450, -50, 1420}, 100, Mc3);
         
-        Material Mc4 {Color::colorFromFloat(1, 1, 0)};
-        Mc4.alpha = 0.5f;
-        Mc4.ior = 1;
-        Mc4.type = MaterialType::TRANSPARENT;
-        Circle c4(Vec3f{-250, -250, 1320}, 50, Mc4);
+        Circle c4(Vec3f{-300, -200, 1320}, 50, Mc1);
         Material Mc5 {
             Color::colorFromFloat(0.20725, 0.20725, 0.20725),
             Color::colorFromFloat(0.7, 0.7, 0.7),
@@ -75,7 +75,7 @@ int main(int argc, char* argv [])
         //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
 //        Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
-        Plane p5(Vec3f{0, 0, 2200}, Vec3f{0, 0, -1}, Mc5);
+        Plane p5(Vec3f{0, 0, 2400}, Vec3f{0, 0, -1}, Mc0);
     
         //our camera defines our final view
         Camera cam {

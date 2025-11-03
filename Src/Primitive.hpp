@@ -14,8 +14,8 @@ class Primitive {
         static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 4);
 
     protected:
-        static Vec3f definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t depth = 5);
-        Vec3f transparentCalculation(Vec3f fragPos, Vec3f dir, Vec3f camPos, uint8_t depth);
+        static Vec3f definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth = 5);
+        Vec3f transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, int depth);
         Vec3f diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance);
         Vec3f phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, float attenuation);
         bool retrieveNormalDir(Vec3f normal, Vec3f rayDir) const;

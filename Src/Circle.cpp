@@ -16,8 +16,8 @@ double Circle::intersection(Vec3f dir, Vec3f OC) const {
     if (delta < 0) return -1;
     double t1 = ((- b - std::sqrt(delta)) / (2 * a));
     double t2 = ((- b + std::sqrt(delta)) / (2 * a));
-    if (t1 > 0) return t1;
-    else if (t2 > 0) return t2;
+    if (t1 > offset) return t1;
+    else if (t2 > offset) return t2;
     return -1;
 }
 

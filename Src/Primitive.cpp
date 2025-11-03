@@ -2,7 +2,7 @@
 
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
-Vec3f Primitive::defaultColor = Vec3f{1, 1, 1};
+Vec3f Primitive::defaultColor = Vec3f{1, 0.1f, 1};
 
 //maybe too costly in time
 bool sortByDepth(const Primitive& a, const Primitive& b)
@@ -47,7 +47,7 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
     return returnImg;
 }
 
-Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t depth) {
+Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth) {
     if (depth == 0) {
         return defaultColor;
     }
@@ -75,13 +75,11 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t de
     switch (objectList[index]->mat.type)
     {
         case MaterialType::DIFFUSE:
-
             return objectList[index]->diffuseCalculation(fragPos, camPos, distance);
             
             break;
         case MaterialType::TRANSPARENT:
-
-            return objectList[index]->transparentCalculation(fragPos, camPos, dir, depth);
+            return objectList[index]->transparentCalculation(fragPos, camPos, dir, depth) + objectList[index]->mat.ambient * objectList[index]->mat.alpha;
 
             break;
         case MaterialType::REFLECTIVE:
@@ -97,26 +95,30 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, uint8_t de
     return defaultColor;
 }
 
-Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f dir, Vec3f camPos, uint8_t depth) {
+Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, int depth) {
 
     Vec3f normal = normalAtPoint(fragPos, dir);
     double ri = retrieveNormalDir(normal, dir) ? 1.0 / mat.ior : mat.ior;
-    double cosTheta = std::fmin(-dir.dot(normal), 1.0);
+    double cosTheta = std::fmin((-dir).dot(normal), 1.0);
     double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
-    bool canRefract = ri * sinTheta <= 1.0f;
-    double kr = 1;
+    bool cannotRefract = ri * sinTheta > 1.0f;
+    double kr = Material::reflectance(cosTheta, ri);
 
-    Vec3f refractionDir;
-    Vec3f refractColor;
-    if (canRefract) {
-        Vec3f refractionDir = dir.refract(normal, ri);
-        Vec3f refractColor = definitiveColor(fragPos, refractionDir, camPos, --depth);
-        kr = Material::reflectance(cosTheta, ri);
+    Vec3f newDir;
+    Vec3f color;
+    depth -= 1;
+    
+    if (cannotRefract) {
+        newDir = (dir.reflect(normal)).normalize();
+        color = definitiveColor(fragPos, newDir, camPos, depth);
     }
-    // Vec3f reflectionDir = (dir.reflect(normal)).normalize();
-    // Vec3f reflectColor = definitiveColor(fragPos, reflectionDir, camPos, --depth);
+    else {
+        //maybe a problem with the sign
+        newDir = dir.refract(normal, -ri);
+        color = definitiveColor(fragPos, newDir, camPos, depth);
+    }
 
-    return refractColor;//reflectColor * (float)kr + refractColor * (1 - (float)kr)  + objectList[index]->mat.ambient * objectList[index]->mat.alpha;
+    return color;
 }
 
 Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance) {    
