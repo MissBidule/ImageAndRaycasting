@@ -52,7 +52,7 @@ struct Material {
 
     MaterialType type = MaterialType::DIFFUSE;
 
-    static double reflectance(double cosine, double refractionIndex) {
+    static float reflectance(double cosine, double refractionIndex) {
         float r0 = (1 - refractionIndex) / (1 + refractionIndex);
         r0 *= r0;
         return r0 + (1 - r0) * std::pow((1 - cosine), 5);

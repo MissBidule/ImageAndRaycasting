@@ -62,10 +62,10 @@ struct Vec3 {
         return *this - v * 2 * this->dot(v);
     };
 
-    Vec3<t> refract(const Vec3<t> v, double etaiOverEtao) const {
-        float cosTheta = std::fmin((-*this).dot(v), 1.0f);
-        Vec3<t> rOutPerp = (*this + v * cosTheta) * (float)etaiOverEtao;
-        Vec3<t> rOutPara = v * - (float)std::sqrt(std::fabs(1.0 - rOutPerp.norm2()));
+    Vec3<t> refract(const Vec3<t> normal, double etaiOverEtao) const {
+        float cosTheta = std::fmin((-*this).dot(normal), 1.0f);
+        Vec3<t> rOutPerp = ((*this) + normal * cosTheta) * (float)etaiOverEtao;
+        Vec3<t> rOutPara = normal * - (float)std::sqrt(std::fabs(1.0 - rOutPerp.norm2()));
         return rOutPerp + rOutPara;
     };
     

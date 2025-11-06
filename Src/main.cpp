@@ -41,7 +41,7 @@ int main(int argc, char* argv [])
         Circle c0(Vec3f{0, 0, -310}, 300, Mc0);
 
         Material Mc4 {Color::colorFromFloat(1, 1, 0)};
-        Mc4.alpha = 0.1f;
+        Mc4.alpha = 0.3f;
         Mc4.ior = 1.5f;
         Mc4.type = MaterialType::TRANSPARENT;
         Material Mc1 {Color::colorFromFloat(0.1, 0.1, 0.1)};
@@ -54,7 +54,7 @@ int main(int argc, char* argv [])
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
         };
-        Circle c2(Vec3f{0, 0, 2000}, 200, Mc2);
+        Circle c2(Vec3f{0, 300, 2000}, 200, Mc2);
 
         Material Mc3 {
             Color::colorFromFloat(0.0215, 0.0215, 0.1745),
@@ -64,7 +64,7 @@ int main(int argc, char* argv [])
         };
         Circle c3(Vec3f{-450, -50, 1420}, 100, Mc3);
         
-        Circle c4(Vec3f{-300, -200, 1320}, 50, Mc1);
+        Circle c4(Vec3f{-350, -200, 1320}, 50, Mc1);
         Material Mc5 {
             Color::colorFromFloat(0.20725, 0.20725, 0.20725),
             Color::colorFromFloat(0.7, 0.7, 0.7),
@@ -73,9 +73,9 @@ int main(int argc, char* argv [])
         };
         Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc5);
         //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
-//        Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
+        //Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
-        Plane p5(Vec3f{0, 0, 2400}, Vec3f{0, 0, -1}, Mc0);
+        Plane p5(Vec3f{0, 0, 5800}, Vec3f{0, 0, -1}, Mc0);
     
         //our camera defines our final view
         Camera cam {
