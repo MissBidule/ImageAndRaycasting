@@ -23,7 +23,8 @@ double Circle::intersection(Vec3f dir, Vec3f OC) const {
 
 Vec3f Circle::normalAtPoint(Vec3f fragPos, Vec3f rayDir) const {
     Vec3f outwardNormal = (fragPos - pos).normalize();
-    return outwardNormal * (2 *(retrieveNormalDir(outwardNormal, rayDir)) - 1);
+    int face = retrieveNormalDir(outwardNormal, rayDir) ? 1 : -1;
+    return outwardNormal * face;
 }
 
 float Circle::depthValue(double distance, Camera cam) const {

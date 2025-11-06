@@ -1,5 +1,5 @@
 GXX=g++
-CXXFLAGS=-Wall -pedantic -std=c++14 -O3 -ffast-math
+CXXFLAGS=-Wall -pedantic -std=c++14 -O3 -ffast-math -fopenmp -lpthread
 DEL=rm
 
 # Adaptez ces deux variables avec vos propres chemins s'ils sont différents :

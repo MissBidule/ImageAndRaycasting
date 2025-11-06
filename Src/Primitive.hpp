@@ -11,7 +11,7 @@ class Primitive {
         static Vec3f defaultColor;
 
         //will call all primitives to draw
-        static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 4);
+        static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 16);
 
     protected:
         static Vec3f definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth = 5);

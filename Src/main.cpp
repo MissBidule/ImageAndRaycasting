@@ -101,7 +101,7 @@ int main(int argc, char* argv [])
         
         end = std::chrono::steady_clock::now();
         
-        ColorImage* perspImg = Primitive::draw(*img, cam, 8);
+        ColorImage* perspImg = Primitive::draw(*img, cam);
         
         end = std::chrono::steady_clock::now();
         

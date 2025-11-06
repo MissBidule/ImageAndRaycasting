@@ -1,4 +1,6 @@
 #include "Primitive.hpp"
+#include <time.h>
+#include <omp.h>
 
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
@@ -18,27 +20,30 @@ Primitive::Primitive(Vec3f _pos, Material _mat) : pos(_pos), mat(_mat) {
 ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
     //bilinear scale ensures the picture is the size of the output camera
     ColorImage* returnImg = img.bilinearScale(cam.width, cam.height);
-    //works better with pow 2 values
-    if (samples < 1) samples = 2;
 
     //raytrace the shapes for each pixel    
-    for (float j = 0; j < cam.height; j++) {
-        for (float i = 0; i < cam.width; i++) {
-            //rand samples ?
+    #pragma omp declare reduction(vec3f_plus : Vec3f : omp_out = omp_out + omp_in) initializer(omp_priv = Vec3f())
+    #pragma omp parallel for collapse(2) schedule(dynamic, 8)
+    for (int j = 0; j < cam.height; j++) {
+        for (int i = 0; i < cam.width; i++) {
             Vec3f colorMix{0, 0, 0};
             float hit = 0;
-            for (float l = 1/(float)samples; l < 1; l += 2/(float)samples) {
-                for (float k = 1/(float)samples; k < 1; k += 2/(float)samples) {
-                    if (cam.viewType == ViewType::ORTHO) {
-                        Vec3f rayOrig{(cam.viewPos.x - cam.width/2 + i + k), - (cam.viewPos.y - cam.height/2 + j + l), (cam.viewPos.z)};
-                        colorMix = colorMix + Primitive::definitiveColor(rayOrig, Vec3f{0, 0, 1}, cam.viewPos);
-                    }
-                    else {
-                        Vec3f rayDir = Vec3f{i + k - (float)cam.width/2, - (j + l) + (float)cam.height/2, (float)cam.FOV}.normalize();
-                        colorMix = colorMix + Primitive::definitiveColor(cam.viewPos, rayDir, cam.viewPos);
-                    }
-                    hit++;//could be samples
+            
+            unsigned int seed = omp_get_thread_num() + time(nullptr);
+            
+            for (int k = 0; k < samples; k++)
+            {
+                float jRand = static_cast<float>(rand_r(&seed)) / static_cast<float>(RAND_MAX);
+                float iRand = static_cast<float>(rand_r(&seed)) / static_cast<float>(RAND_MAX);
+                if (cam.viewType == ViewType::ORTHO) {
+                    Vec3f rayOrig{(cam.viewPos.x - cam.width/2 + i + iRand), - (cam.viewPos.y - cam.height/2 + j + jRand), (cam.viewPos.z)};
+                    colorMix = colorMix + Primitive::definitiveColor(rayOrig, Vec3f{0, 0, 1}, cam.viewPos);
                 }
+                else {
+                    Vec3f rayDir = Vec3f{i + iRand - (float)cam.width/2, - (j + jRand) + (float)cam.height/2, (float)cam.FOV}.normalize();
+                    colorMix = colorMix + Primitive::definitiveColor(cam.viewPos, rayDir, cam.viewPos);
+                }
+                hit++;
             }
             returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / (hit > 0.0f ? hit : 1.0f));
         }
