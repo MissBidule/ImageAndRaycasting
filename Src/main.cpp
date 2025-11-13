@@ -41,10 +41,10 @@ int main(int argc, char* argv [])
         Circle c0(Vec3f{0, 0, -310}, 300, Mc0);
 
         Material Mc4 {Color::colorFromFloat(1, 1, 0)};
-        Mc4.alpha = 0.3f;
+        Mc4.alpha = 0;
         Mc4.ior = 1.5f;
         Mc4.type = MaterialType::TRANSPARENT;
-        Material Mc1 {Color::colorFromFloat(0.1, 0.1, 0.1)};
+        Material Mc1 {Color::colorFromFloat(1, 1, 1)};
         Mc1.type = MaterialType::REFLECTIVE;
         Circle c1(Vec3f{0, -200, 1500}, 300, Mc4);
 
@@ -64,7 +64,7 @@ int main(int argc, char* argv [])
         };
         Circle c3(Vec3f{-450, -50, 1420}, 100, Mc3);
         
-        Circle c4(Vec3f{-350, -200, 1320}, 50, Mc1);
+        Circle c4(Vec3f{-400, -200, 1620}, 50, Mc1);
         Material Mc5 {
             Color::colorFromFloat(0.20725, 0.20725, 0.20725),
             Color::colorFromFloat(0.7, 0.7, 0.7),
