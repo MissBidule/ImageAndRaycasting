@@ -1,6 +1,7 @@
 #include "Primitive.hpp"
 #include <time.h>
 #include <omp.h>
+#include <random>
 
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
@@ -21,20 +22,19 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
     //bilinear scale ensures the picture is the size of the output camera
     ColorImage* returnImg = img.bilinearScale(cam.width, cam.height);
 
-    //raytrace the shapes for each pixel    
-    #pragma omp declare reduction(vec3f_plus : Vec3f : omp_out = omp_out + omp_in) initializer(omp_priv = Vec3f())
+    //raytrace the shapes for each pixel
     #pragma omp parallel for collapse(2) schedule(dynamic, 8)
     for (int j = 0; j < cam.height; j++) {
         for (int i = 0; i < cam.width; i++) {
             Vec3f colorMix{0, 0, 0};
-            float hit = 0;
             
-            unsigned int seed = omp_get_thread_num() + time(nullptr);
+            static thread_local std::mt19937 generator;
+            std::uniform_real_distribution<float> distribution(0,1);
             
             for (int k = 0; k < samples; k++)
             {
-                float jRand = static_cast<float>(rand_r(&seed)) / static_cast<float>(RAND_MAX);
-                float iRand = static_cast<float>(rand_r(&seed)) / static_cast<float>(RAND_MAX);
+                float jRand = distribution(generator);
+                float iRand = distribution(generator);
                 if (cam.viewType == ViewType::ORTHO) {
                     Vec3f rayOrig{(cam.viewPos.x - cam.width/2 + i + iRand), - (cam.viewPos.y - cam.height/2 + j + jRand), (cam.viewPos.z)};
                     colorMix = colorMix + Primitive::definitiveColor(rayOrig, Vec3f{0, 0, 1}, cam.viewPos);
@@ -43,9 +43,8 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
                     Vec3f rayDir = Vec3f{i + iRand - (float)cam.width/2, - (j + jRand) + (float)cam.height/2, (float)cam.FOV}.normalize();
                     colorMix = colorMix + Primitive::definitiveColor(cam.viewPos, rayDir, cam.viewPos);
                 }
-                hit++;
             }
-            returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / (hit > 0.0f ? hit : 1.0f));
+            returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / samples);
         }
     }
 
@@ -133,64 +132,66 @@ Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, 
 
 Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance) {    
     //test shadow or light
-    Vec3f finalColor = Vec3f{0, 0, 0};
-    for (size_t i = 0; i < Light::lightList.size(); i++) {
-        double temp;
-        const Light currentLight = *Light::lightList[i];
-        float attenuation = 1.0f;
-        Vec3f lightColor = currentLight.color;
-        Vec3f lightDir;
-        float shadowAlpha = 0;
+//    for (size_t i = 0; i < Light::lightList.size(); i++) {
+    static thread_local std::mt19937 generator;
+    std::uniform_int_distribution<int> distribution(0,(int)Light::lightList.size()-1);
+    double temp;
+    const Light currentLight = *Light::lightList[distribution(generator)];
+    float attenuation = 1.0f;
+    Vec3f lightColor = currentLight.color;
+    Vec3f lightDir;
+    float shadowAlpha = 0;
 
-        if (currentLight.type == LightType::POINT) {
-            Vec3f ray = currentLight.pos - fragPos;
-            float distance = ray.norm();
-            attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
-            for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->raytrace(fragPos, ray.normalize());
-                if (temp != -1 && (temp - distance) < offset) {
-                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
-                        shadowAlpha += objectList[u]->mat.alpha;
-                        if (shadowAlpha >= 1) {
-                            shadowAlpha = 1;
-                            break;
-                        }
-                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
-                    }
-                    else {
+    if (currentLight.type == LightType::POINT) {
+        Vec3f ray = currentLight.pos - fragPos;
+        float distance = ray.norm();
+        attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
+        for (size_t u = 0; u < objectList.size(); u ++) {
+            temp = objectList[u]->raytrace(fragPos, ray.normalize());
+            if (temp != -1 && (temp - distance) < offset) {
+                if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
+                    shadowAlpha += objectList[u]->mat.alpha;
+                    if (shadowAlpha >= 1) {
                         shadowAlpha = 1;
                         break;
                     }
+                    lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
+                }
+                else {
+                    shadowAlpha = 1;
+                    break;
                 }
             }
-            lightDir = ray.normalize();
         }
-        else if (currentLight.type == LightType::DIR) {
-            lightDir = (- currentLight.pos).normalize();
-            for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->raytrace(fragPos, lightDir);
-                if (temp != -1) {
-                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
-                        shadowAlpha += objectList[u]->mat.alpha;
-                        if (shadowAlpha >= 1) {
-                            shadowAlpha = 1;
-                            break;
-                        }
-                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
-                    }
-                    else {
+        lightDir = ray.normalize();
+    }
+    else if (currentLight.type == LightType::DIR) {
+        lightDir = (- currentLight.pos).normalize();
+        for (size_t u = 0; u < objectList.size(); u ++) {
+            temp = objectList[u]->raytrace(fragPos, lightDir);
+            if (temp != -1) {
+                if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
+                    shadowAlpha += objectList[u]->mat.alpha;
+                    if (shadowAlpha >= 1) {
                         shadowAlpha = 1;
                         break;
                     }
+                    lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
+                }
+                else {
+                    shadowAlpha = 1;
+                    break;
                 }
             }
         }
-
-        //final color
-        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat.ambient * shadowAlpha * attenuation;
     }
 
-    return finalColor;
+    //final color
+    Vec3f finalColor = phongColor(fragPos, lightColor, lightDir, camPos, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat.ambient * shadowAlpha * attenuation;
+    
+    float pdf = 1.0f / Light::lightList.size();
+
+    return finalColor / pdf;
 }
 
 bool Primitive::retrieveNormalDir(Vec3f normal, Vec3f rayDir) const {

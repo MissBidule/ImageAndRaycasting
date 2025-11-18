@@ -7,15 +7,15 @@
 #include "Circle.hpp"
 #include "GreyImage.hpp"
 #include "Plane.hpp"
+#include <omp.h>
 
 const int width = 1200;
 const int height = 1200;
 
 int main(int argc, char* argv [])
 {
-
-    //Exercises with shapes
     {
+    //Exercises with shapes
         //This is our base which shows if something is missing
         ColorImage* img = ColorImage::readJPEG("ifpicture/cropPic.jpg");
 
