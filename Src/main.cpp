@@ -91,11 +91,11 @@ int main(int argc, char* argv [])
         };
 
         std::vector<Triangle*> triangleList;
-        std::vector<Vec3f> vertexList = loadObjtriangles("sofa", -300, 300);
+        std::vector<Vec3f> vertexList = loadObjtriangles("sofa", -600, 600);
         for (size_t i = 0; i < vertexList.size(); i+=3) {
-            vertexList[i] = vertexList[i] + Vec3f{-300, -200, 2000};
-            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-300, -200, 2000};
-            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-300, -200, 2000};
+            vertexList[i] = vertexList[i] + Vec3f{-550, -550, 2000};
+            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-550, -550, 2000};
+            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-550, -550, 2000};
 
             triangleList.emplace_back(new Triangle{
                 vertexList[i + 0],
