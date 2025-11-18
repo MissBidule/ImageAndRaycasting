@@ -5,7 +5,7 @@
 
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
-Vec3f Primitive::defaultColor = Vec3f{1, 0, 1};
+Vec3f Primitive::defaultColor = Vec3f{0.2f, 0.2f, 0.9f};
 
 //maybe too costly in time
 bool sortByDepth(const Primitive& a, const Primitive& b)
@@ -132,66 +132,69 @@ Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, 
 
 Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance) {    
     //test shadow or light
-//    for (size_t i = 0; i < Light::lightList.size(); i++) {
-    static thread_local std::mt19937 generator;
-    std::uniform_int_distribution<int> distribution(0,(int)Light::lightList.size()-1);
-    double temp;
-    const Light currentLight = *Light::lightList[distribution(generator)];
-    float attenuation = 1.0f;
-    Vec3f lightColor = currentLight.color;
-    Vec3f lightDir;
-    float shadowAlpha = 0;
+    Vec3f finalColor{0, 0, 0};
+   for (size_t i = 0; i < Light::lightList.size(); i++) {
+        // static thread_local std::mt19937 generator;
+        // std::uniform_int_distribution<int> distribution(0,(int)Light::lightList.size()-1);
+        double temp;
+        // const Light currentLight = *Light::lightList[distribution(generator)];
+        const Light currentLight = *Light::lightList[i];
+        float attenuation = 1.0f;
+        Vec3f lightColor = currentLight.color;
+        Vec3f lightDir;
+        float shadowAlpha = 0;
 
-    if (currentLight.type == LightType::POINT) {
-        Vec3f ray = currentLight.pos - fragPos;
-        float distance = ray.norm();
-        attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
-        for (size_t u = 0; u < objectList.size(); u ++) {
-            temp = objectList[u]->raytrace(fragPos, ray.normalize());
-            if (temp != -1 && (temp - distance) < offset) {
-                if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
-                    shadowAlpha += objectList[u]->mat.alpha;
-                    if (shadowAlpha >= 1) {
+        if (currentLight.type == LightType::POINT) {
+            Vec3f ray = currentLight.pos - fragPos;
+            float distance = ray.norm();
+            attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
+            for (size_t u = 0; u < objectList.size(); u ++) {
+                temp = objectList[u]->raytrace(fragPos, ray.normalize());
+                if (temp != -1 && (temp - distance) < offset) {
+                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += objectList[u]->mat.alpha;
+                        if (shadowAlpha >= 1) {
+                            shadowAlpha = 1;
+                            break;
+                        }
+                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
+                    }
+                    else {
                         shadowAlpha = 1;
                         break;
                     }
-                    lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
-                }
-                else {
-                    shadowAlpha = 1;
-                    break;
                 }
             }
+            lightDir = ray.normalize();
         }
-        lightDir = ray.normalize();
-    }
-    else if (currentLight.type == LightType::DIR) {
-        lightDir = (- currentLight.pos).normalize();
-        for (size_t u = 0; u < objectList.size(); u ++) {
-            temp = objectList[u]->raytrace(fragPos, lightDir);
-            if (temp != -1) {
-                if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
-                    shadowAlpha += objectList[u]->mat.alpha;
-                    if (shadowAlpha >= 1) {
+        else if (currentLight.type == LightType::DIR) {
+            lightDir = (- currentLight.pos).normalize();
+            for (size_t u = 0; u < objectList.size(); u ++) {
+                temp = objectList[u]->raytrace(fragPos, lightDir);
+                if (temp != -1) {
+                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += objectList[u]->mat.alpha;
+                        if (shadowAlpha >= 1) {
+                            shadowAlpha = 1;
+                            break;
+                        }
+                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
+                    }
+                    else {
                         shadowAlpha = 1;
                         break;
                     }
-                    lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
-                }
-                else {
-                    shadowAlpha = 1;
-                    break;
                 }
             }
         }
+
+        //final color
+        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat.ambient * shadowAlpha * attenuation;
+        
+        // float pdf = 1.0f / Light::lightList.size();
     }
-
-    //final color
-    Vec3f finalColor = phongColor(fragPos, lightColor, lightDir, camPos, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat.ambient * shadowAlpha * attenuation;
-    
-    float pdf = 1.0f / Light::lightList.size();
-
-    return finalColor / pdf;
+    // return finalColor / pdf;
+    return finalColor;
 }
 
 bool Primitive::retrieveNormalDir(Vec3f normal, Vec3f rayDir) const {

@@ -12,7 +12,7 @@ struct Vec3 {
     t z;
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3<t> v) {
-        os << "{" << v.x << ";" << v.y << ";" << v.z << "}";
+        os << "{" << v.x << "," << v.y << "," << v.z << "}";
         return os;
     };
 
