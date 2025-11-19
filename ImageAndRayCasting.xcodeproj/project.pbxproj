@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		64E3A0602ECDA18800B33404 /* objFiles in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E3A05F2ECDA18800B33404 /* objFiles */; };
 		64EEA7BB2E8B0108002EB390 /* libjpeg.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 64EEA7BA2E8B0108002EB390 /* libjpeg.9.dylib */; };
 		64EEA8732E8B0672002EB390 /* ifpicture in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64EEA8722E8B0672002EB390 /* ifpicture */; };
 		64EEA8752E8B06B9002EB390 /* ofpicture in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64EEA8742E8B06B9002EB390 /* ofpicture */; };
@@ -19,6 +20,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				64E3A0602ECDA18800B33404 /* objFiles in CopyFiles */,
 				64EEA8752E8B06B9002EB390 /* ofpicture in CopyFiles */,
 				64EEA8732E8B0672002EB390 /* ifpicture in CopyFiles */,
 			);
@@ -27,6 +29,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		64E3A05F2ECDA18800B33404 /* objFiles */ = {isa = PBXFileReference; lastKnownFileType = folder; name = objFiles; path = Src/objFiles; sourceTree = "<group>"; };
 		64EEA7A32E8AF896002EB390 /* src */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = src; sourceTree = BUILT_PRODUCTS_DIR; };
 		64EEA7B32E8AF8BD002EB390 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		64EEA7BA2E8B0108002EB390 /* libjpeg.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjpeg.9.dylib; path = ../../../../../opt/homebrew/Cellar/jpeg/9f/lib/libjpeg.9.dylib; sourceTree = "<group>"; };
@@ -70,6 +73,7 @@
 		64EEA79A2E8AF896002EB390 = {
 			isa = PBXGroup;
 			children = (
+				64E3A05F2ECDA18800B33404 /* objFiles */,
 				64EEA8742E8B06B9002EB390 /* ofpicture */,
 				64EEA8722E8B0672002EB390 /* ifpicture */,
 				64EEA7A52E8AF896002EB390 /* src */,

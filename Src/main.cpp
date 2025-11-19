@@ -16,7 +16,7 @@
 const int width = 1200;
 const int height = 1200;
 
-std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max);
+std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max, std::vector<Vec3f>& normals);
 
 int main(int argc, char* argv [])
 {
@@ -91,11 +91,16 @@ int main(int argc, char* argv [])
         };
 
         std::vector<Triangle*> triangleList;
-        std::vector<Vec3f> vertexList = loadObjtriangles("sofa", -600, 600);
+        std::vector<Vec3f> normals;
+        std::vector<Vec3f> vertexList = loadObjtriangles("cube", -200, 200, normals);
         for (size_t i = 0; i < vertexList.size(); i+=3) {
-            vertexList[i] = vertexList[i] + Vec3f{-550, -550, 2000};
-            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-550, -550, 2000};
-            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-550, -550, 2000};
+//            vertexList[i] = vertexList[i] + Vec3f{-550, -550, 2000};
+//            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-550, -550, 2000};
+//            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-550, -550, 2000};
+            
+            vertexList[i] = vertexList[i] + Vec3f{-150, -550, 2500};
+            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-150, -550, 2500};
+            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-150, -550, 2500};
 
             triangleList.emplace_back(new Triangle{
                 vertexList[i + 0],
@@ -103,6 +108,10 @@ int main(int argc, char* argv [])
                 vertexList[i + 2],
                 Mc2
             });
+            
+            if (normals.size() == vertexList.size()) {
+                triangleList[i]->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
+            }
         }
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -384,7 +393,7 @@ int main(int argc, char* argv [])
 	return 0;
 }
 
-std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max) {
+std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max, std::vector<Vec3f>& normals) {
 
     std::string inputfile = "objFiles/" + objFileName + ".obj";
     tinyobj::ObjReaderConfig reader_config;
@@ -423,9 +432,18 @@ std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max)
                 tinyobj::real_t vx = attrib.vertices[3*size_t(idx.vertex_index)+0];
                 tinyobj::real_t vy = attrib.vertices[3*size_t(idx.vertex_index)+1];
                 tinyobj::real_t vz = -attrib.vertices[3*size_t(idx.vertex_index)+2];
-
+                
                 Vec3f vertex{vx, vy, vz};
                 trianglesVertex.emplace_back(vertex);
+                
+                if (idx.normal_index >= 0) {
+                    tinyobj::real_t nx = attrib.normals[3*size_t(idx.normal_index)+0];
+                    tinyobj::real_t ny = attrib.normals[3*size_t(idx.normal_index)+1];
+                    tinyobj::real_t nz = -attrib.normals[3*size_t(idx.normal_index)+2];
+                    
+                    Vec3f normal{nx, ny, nz};
+                    normals.emplace_back(normal);
+                  }
 
                 float tempMin = vx < vy ? vx : vy;
                 tempMin = vz < tempMin ? vz : tempMin;
@@ -441,6 +459,7 @@ std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max)
     float targetAmplitude = std::abs(_max - _min);
     float actualAmplitude = max - min;
     float factor = targetAmplitude / actualAmplitude;
+    //should rebase min
     std::cout << max << " " << min << std::endl;
     std::cout << factor << std::endl;
     for (size_t i = 0; i < trianglesVertex.size(); i+=3) {
