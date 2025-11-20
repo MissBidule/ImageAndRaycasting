@@ -5,6 +5,7 @@
 #include <fstream>
 #include <omp.h>
 #include <chrono>
+#include <memory>
 
 #include "Circle.hpp"
 #include "Triangle.hpp"
@@ -16,7 +17,7 @@
 const int width = 1200;
 const int height = 1200;
 
-std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max, std::vector<Vec3f>& normals);
+std::vector<std::unique_ptr<Triangle>> loadObjtriangles(std::string objFileName, Material& mat);
 
 int main(int argc, char* argv [])
 {
@@ -90,28 +91,12 @@ int main(int argc, char* argv [])
             1300
         };
 
-        std::vector<Triangle*> triangleList;
-        std::vector<Vec3f> normals;
-        std::vector<Vec3f> vertexList = loadObjtriangles("cube", -100, 100, normals);
-        for (size_t i = 0; i < vertexList.size(); i+=3) {
-        //    vertexList[i] = vertexList[i] + Vec3f{-550, -550, 2000};
-        //    vertexList[i + 1] = vertexList[i + 1] + Vec3f{-550, -550, 2000};
-        //    vertexList[i + 2] = vertexList[i + 2] + Vec3f{-550, -550, 2000};
-            
-            vertexList[i] = vertexList[i] + Vec3f{-250, -250, 1500};
-            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-250, -250, 1500};
-            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-250, -250, 1500};
-
-            triangleList.emplace_back(new Triangle{
-                vertexList[i + 0],
-                vertexList[i + 1],
-                vertexList[i + 2],
-                Mc2
-            });
-            
-            if (normals.size() == vertexList.size()) {
-                triangleList[i/3]->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
-            }
+        std::vector<std::unique_ptr<Triangle>> triangleList = loadObjtriangles("cube", Mc2);
+        for (size_t i = 0; i < triangleList.size(); i++) {
+            triangleList[i]->setScale(100);
+            triangleList[i]->setTranslate(Vec3f{-250, -250, 1500});
+            // triangleList[i]->setScale(600);
+            // triangleList[i]->setTranslate(Vec3f{-550, -550, 2000});
         }
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -138,9 +123,6 @@ int main(int argc, char* argv [])
         
         std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for persp" << std::endl;
         
-        for (size_t i = 0; i < triangleList.size(); i++) {
-            delete triangleList[i];
-        }
         delete img;
         delete orthoImg;
         delete perspImg;
@@ -393,7 +375,7 @@ int main(int argc, char* argv [])
 	return 0;
 }
 
-std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max, std::vector<Vec3f>& normals) {
+std::vector<std::unique_ptr<Triangle>> loadObjtriangles(std::string objFileName, Material& mat) {
 
     std::string inputfile = "objFiles/" + objFileName + ".obj";
     tinyobj::ObjReaderConfig reader_config;
@@ -417,6 +399,7 @@ std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max,
     float min = 0;
     float max = 0;
     std::vector<Vec3f> trianglesVertex;
+    std::vector<Vec3f> normals;
 
     // Loop over shapes
     for (size_t s = 0; s < shapes.size(); s++) {
@@ -456,17 +439,30 @@ std::vector<Vec3f> loadObjtriangles(std::string objFileName, int _min, int _max,
         }
     }
     
-    float targetAmplitude = std::abs(_max - _min);
     float actualAmplitude = max - min;
-    float factor = targetAmplitude / actualAmplitude;
+    if (actualAmplitude == 0) return {};
+    float factor = 2 / actualAmplitude;
     //should rebase min
     std::cout << max << " " << min << std::endl;
     std::cout << factor << std::endl;
+    std::vector<std::unique_ptr<Triangle>> triangleList;
+    triangleList.reserve(trianglesVertex.size()/3);
     for (size_t i = 0; i < trianglesVertex.size(); i+=3) {
         trianglesVertex[i] = (trianglesVertex[i] * factor);
         trianglesVertex[i + 1] = (trianglesVertex[i + 1] * factor);
         trianglesVertex[i + 2] = (trianglesVertex[i + 2] * factor);
+
+        triangleList.emplace_back(std::make_unique<Triangle>(
+            trianglesVertex[i + 0],
+            trianglesVertex[i + 1],
+            trianglesVertex[i + 2],
+            mat
+        ));
+        
+        if (normals.size() == trianglesVertex.size()) {
+            triangleList[i/3]->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
+        }
     }
 
-    return trianglesVertex;
+    return triangleList;
 }

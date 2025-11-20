@@ -1,4 +1,4 @@
-#include "Primitive.hpp"
+#include "Triangle.hpp"
 #include <time.h>
 #include <omp.h>
 #include <random>
@@ -14,8 +14,8 @@ bool sortByDepth(const Primitive& a, const Primitive& b)
 }
 //std::sort(Primitive::ObjectList.begin(), Primitive::ObjectList.end(), sortByDepth);
 
-Primitive::Primitive(Vec3f _pos, Material& _mat) : pos(_pos), mat(&_mat) {
-    objectList.emplace_back(this);
+Primitive::Primitive(Vec3f _pos, Material& _mat, bool isPartOfObj) : pos(_pos), mat(&_mat) {
+    if (!isPartOfObj) objectList.emplace_back(this);
 }
 
 ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
@@ -58,16 +58,20 @@ Vec3f Primitive::definitiveColor(Ray& ray, Vec3f camPos, int depth) {
         return defaultColor;
     }
     
-    size_t index = 0;
     double distance = -1;
     double temp;
-    index = 0;
     distance = -1;
+    Hit bestHit;
     for (size_t u = 0; u < objectList.size(); u ++) {
-        temp = objectList[u]->raytrace(ray);
-        if ((temp != -1 && temp < distance) || distance == -1) {
+        Hit hit;
+        temp = objectList[u]->raytrace(ray, hit);
+        if (temp != -1 && objectList[u]->multiMesh) {
+            std::vector<Triangle> triangleMeshes = objectList[u]->getMeshes();
+            //ITERATE HERE
+        }
+        else if ((temp != -1 && temp < distance) || distance == -1) {
             distance = temp;
-            index = u;
+            bestHit = hit;
         }
     }
     
@@ -75,25 +79,24 @@ Vec3f Primitive::definitiveColor(Ray& ray, Vec3f camPos, int depth) {
         return defaultColor;
     }
     
-    Vec3f fragPos = ray.rayPos + ray.rayDir * (float)distance;
     Vec3f reflectionDir;
     Vec3f colorMultiply;
 
-    switch (objectList[index]->mat->type)
+    switch (bestHit.object->mat->type)
     {
         case MaterialType::DIFFUSE:
-            return objectList[index]->diffuseCalculation(fragPos, camPos, distance, ray);
+            return bestHit.object->diffuseCalculation(bestHit.fragPos, bestHit.normal, camPos, distance, ray);
             
             break;
         case MaterialType::TRANSPARENT:
-            colorMultiply = (Vec3f)objectList[index]->mat->ambient * objectList[index]->mat->alpha + Vec3f{1, 1, 1} * (1 - objectList[index]->mat->alpha);
-            return objectList[index]->transparentCalculation(fragPos, camPos, ray, depth) * colorMultiply;
+            colorMultiply = (Vec3f)bestHit.object->mat->ambient * bestHit.object->mat->alpha + Vec3f{1, 1, 1} * (1 - bestHit.object->mat->alpha);
+            return bestHit.object->transparentCalculation(bestHit.fragPos, bestHit.normal, camPos, ray, depth) * colorMultiply;
 
             break;
         case MaterialType::REFLECTIVE:
-            colorMultiply = (Vec3f)objectList[index]->mat->ambient;
-            reflectionDir = (ray.rayDir.reflect(objectList[index]->normalAtPoint(fragPos, ray))).normalize();
-            ray.rayPos = fragPos;
+            colorMultiply = (Vec3f)bestHit.object->mat->ambient;
+            reflectionDir = (ray.rayDir.reflect(bestHit.normal)).normalize();
+            ray.rayPos = bestHit.fragPos;
             ray.rayDir = reflectionDir;
             return definitiveColor(ray, camPos, --depth) * colorMultiply;
 
@@ -105,9 +108,8 @@ Vec3f Primitive::definitiveColor(Ray& ray, Vec3f camPos, int depth) {
     return defaultColor;
 }
 
-Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, const Ray &ray, int depth) const {
+Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, const Ray &ray, int depth) const {
 
-    Vec3f normal = normalAtPoint(fragPos, ray);
     double ri = retrieveNormalDir(normal, ray.rayDir) ? 1.0 / mat->ior : mat->ior;
     double cosTheta = (-ray.rayDir).dot(normal);
     double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
@@ -142,7 +144,7 @@ Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, const Ray &
     return color;
 }
 
-Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance, const Ray& ray) const {    
+Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, double distance, const Ray& ray) const {    
     //test shadow or light
     Vec3f finalColor{0, 0, 0};
    for (size_t i = 0; i < Light::lightList.size(); i++) {
@@ -165,15 +167,16 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
                     fragPos,
                     ray.normalize()
                 };
-                temp = objectList[u]->raytrace(lightRay);
+                Hit hit;
+                temp = objectList[u]->raytrace(lightRay, hit);
                 if (temp != -1 && (temp - distance) < offset) {
-                    if (objectList[u]->mat->type == MaterialType::TRANSPARENT) {
-                        shadowAlpha += objectList[u]->mat->alpha;
+                    if (hit.object->mat->type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += hit.object->mat->alpha;
                         if (shadowAlpha >= 1) {
                             shadowAlpha = 1;
                             break;
                         }
-                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat->ambient) * objectList[u]->mat->alpha);
+                        lightColor = lightColor - ((Vec3f() - (Vec3f)hit.object->mat->ambient) * hit.object->mat->alpha);
                     }
                     else {
                         shadowAlpha = 1;
@@ -190,15 +193,16 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
                     fragPos,
                     lightDir
                 };
-                temp = objectList[u]->raytrace(lightRay);
+                Hit hit;
+                temp = objectList[u]->raytrace(lightRay, hit);
                 if (temp != -1) {
-                    if (objectList[u]->mat->type == MaterialType::TRANSPARENT) {
-                        shadowAlpha += objectList[u]->mat->alpha;
+                    if (hit.object->mat->type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += hit.object->mat->alpha;
                         if (shadowAlpha >= 1) {
                             shadowAlpha = 1;
                             break;
                         }
-                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat->ambient) * objectList[u]->mat->alpha);
+                        lightColor = lightColor - ((Vec3f() - (Vec3f)hit.object->mat->ambient) * hit.object->mat->alpha);
                     }
                     else {
                         shadowAlpha = 1;
@@ -209,7 +213,7 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
         }
 
         //final color
-        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, ray, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat->ambient * shadowAlpha * attenuation;
+        finalColor = finalColor + phongColor(fragPos, normal, lightColor, lightDir, camPos, ray, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat->ambient * shadowAlpha * attenuation;
         
         // float pdf = 1.0f / Light::lightList.size();
     }
@@ -221,8 +225,7 @@ bool Primitive::retrieveNormalDir(Vec3f normal, Vec3f rayDir) const {
     return rayDir.dot(normal) <= 0;
 }
 
-Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, const Ray& ray, float attenuation) const {
-    Vec3f normal = normalAtPoint(fragPos, ray);
+Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f normal, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, const Ray& ray, float attenuation) const {
     Vec3f matAmbient = mat->ambient;
     Vec3f matDiffuse = mat->diffuse;
     Vec3f matSpecular = mat->specular;
@@ -241,4 +244,9 @@ Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec
     Vec3f specular = matSpecular * lightColor * spec * attenuation;
 
     return ambient + diffuse + specular;
+}
+
+std::vector<Triangle>& Primitive::getMeshes() const {
+    std::vector<Triangle> temp;
+    return NULL; //useless for monoMesh //NULL = bad
 }

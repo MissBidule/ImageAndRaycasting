@@ -1,11 +1,17 @@
 #include "Circle.hpp"
 
-Circle::Circle(Vec3f pos, float _radius, Material& mat) : Primitive(pos, mat), radius(_radius) {}
+Circle::Circle(Vec3f pos, float _radius, Material& mat, bool isPartOfObj) : Primitive(pos, mat, isPartOfObj), radius(_radius) {}
 
-double Circle::raytrace(Ray& ray) const {
+double Circle::raytrace(Ray& ray, Hit& hit) {
     Vec3f OC = pos - (ray.rayPos + ray.rayDir * offset);
+    double d = intersection(ray.rayDir, OC);
+    Vec3f fragPos = ray.rayPos + ray.rayDir * (float)d;
+
+    hit.object = this;
+    hit.fragPos = fragPos;
+    hit.normal = normalAtPoint(fragPos, ray);
     
-    return intersection(ray.rayDir, OC);
+    return d;
 }
 
 double Circle::intersection(Vec3f dir, Vec3f OC) const {
@@ -37,4 +43,12 @@ float Circle::depthValue(double distance, Camera cam) const {
     }
     
     return ((distance - OC) / - radius);
+}
+
+void Circle::setScale(float newScale) {
+    radius *= newScale;
+}
+
+void Circle::setTranslate(Vec3f newTranslate) {
+    pos = pos + newTranslate;
 }

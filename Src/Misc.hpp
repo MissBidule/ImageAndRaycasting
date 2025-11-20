@@ -47,11 +47,6 @@ struct Ray {
     Vec3f rayDir;
 };
 
-struct Hit {
-    Primitive* = nullptr;
-    Vec3f normal;
-}
-
 struct Material {
     Color ambient = Color();
     Color diffuse = Color();

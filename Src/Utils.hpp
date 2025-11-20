@@ -54,6 +54,10 @@ struct Vec3 {
         return x*v.x + y*v.y + z*v.z;
     };
 
+    Vec3<t> invdir() const {
+        return Vec3<t>{1/x, 1/y, 1/z};
+    };
+    
     Vec3<t> cross(const Vec3<t> v) const {
         return Vec3<t>{y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x};
     };

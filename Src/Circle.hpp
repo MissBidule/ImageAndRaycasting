@@ -5,11 +5,13 @@
 
 class Circle : public Primitive {
     public:
-        Circle(Vec3f pos, float _radius, Material& mat);
+        Circle(Vec3f pos, float _radius, Material& mat, bool isPartOfObj = false);
+        void setScale(float newScale) override;
+        void setTranslate(Vec3f newTranslate) override;
 
     private:
-        Vec3f normalAtPoint(Vec3f fragPos, const Ray& ray) const override;
-        double raytrace(Ray& ray) const override;
+        Vec3f normalAtPoint(Vec3f fragPos, const Ray& ray) const;
+        double raytrace(Ray& ray, Hit& hit) override;
         double intersection(Vec3f dir, Vec3f OC) const;
         float depthValue(double distance, Camera cam) const;
 
