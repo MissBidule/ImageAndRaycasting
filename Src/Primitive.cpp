@@ -1,4 +1,4 @@
-#include "Triangle.hpp"
+#include "Primitive.hpp"
 #include <time.h>
 #include <omp.h>
 #include <random>
@@ -6,6 +6,8 @@
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
 Vec3f Primitive::defaultColor = Vec3f{0.2f, 0.2f, 0.9f};
+std::atomic<uint64_t> Primitive::rays = 0;
+thread_local uint64_t raysLocal = 0;
 
 //maybe too costly in time
 bool sortByDepth(const Primitive& a, const Primitive& b)
@@ -19,6 +21,7 @@ Primitive::Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj) : pos(_pos), 
 }
 
 ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
+    Primitive::rays = 0;
     //bilinear scale ensures the picture is the size of the output camera
     ColorImage* returnImg = img.bilinearScale(cam.width, cam.height);
 
@@ -26,6 +29,7 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
     #pragma omp parallel for collapse(2) schedule(dynamic, 8)
     for (int j = 0; j < cam.height; j++) {
         for (int i = 0; i < cam.width; i++) {
+            raysLocal = 0;
             Vec3f colorMix{0, 0, 0};
             
             static thread_local std::mt19937 generator;
@@ -47,6 +51,7 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
                 colorMix = colorMix + Primitive::definitiveColor(ray, cam.viewPos);
             }
             returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / samples);
+            Primitive::rays += raysLocal;
         }
     }
 
@@ -168,17 +173,17 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
             Vec3f ray = currentLight.pos - fragPos;
             float distance = ray.norm();
             attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
-            for (size_t i = 0; i < objectList.size(); i++) {
+            for (size_t j = 0; j < objectList.size(); j++) {
                 Ray lightRay = {
                     fragPos,
                     ray.normalize()
                 };
                 Hit hit;
-                temp = objectList[i]->raytrace(lightRay, hit);
-                if (temp != -1 && objectList[i]->multiMesh) {
-                    const std::vector<Primitive*> triangleMeshes = objectList[i]->getMeshes();
-                    for (size_t j = 0; j < triangleMeshes.size(); j ++) {
-                        temp = triangleMeshes[j]->raytrace(lightRay, hit);
+                temp = objectList[j]->raytrace(lightRay, hit);
+                if (temp != -1 && objectList[j]->multiMesh) {
+                    const std::vector<Primitive*> triangleMeshes = objectList[j]->getMeshes();
+                    for (size_t k = 0; k < triangleMeshes.size(); k ++) {
+                        temp = triangleMeshes[k]->raytrace(lightRay, hit);
                         if ((temp != -1 && temp < distance) || distance == -1) {
                             if (hit.object->mat->type == MaterialType::TRANSPARENT) {
                                 shadowAlpha += hit.object->mat->alpha;
@@ -214,18 +219,18 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
         }
         else if (currentLight.type == LightType::DIR) {
             lightDir = (- currentLight.pos).normalize();
-            for (size_t u = 0; u < objectList.size(); u ++) {
+            for (size_t j = 0; j < objectList.size(); j ++) {
                 Ray lightRay = {
                     fragPos,
                     lightDir
                 };
                 Hit hit;
-                temp = objectList[i]->raytrace(lightRay, hit);
-                if (temp != -1 && objectList[i]->multiMesh) {
-                    const std::vector<Primitive*> triangleMeshes = objectList[i]->getMeshes();
-                    for (size_t j = 0; j < triangleMeshes.size(); j ++) {
-                        temp = triangleMeshes[j]->raytrace(lightRay, hit);
-                        if ((temp != -1 && temp < distance) || distance == -1) {
+                temp = objectList[j]->raytrace(lightRay, hit);
+                if (temp != -1 && objectList[j]->multiMesh) {
+                    const std::vector<Primitive*> triangleMeshes = objectList[j]->getMeshes();
+                    for (size_t k = 0; k < triangleMeshes.size(); k ++) {
+                        temp = triangleMeshes[k]->raytrace(lightRay, hit);
+                        if (temp != -1) {
                             if (hit.object->mat->type == MaterialType::TRANSPARENT) {
                                 shadowAlpha += hit.object->mat->alpha;
                                 if (shadowAlpha >= 1) {

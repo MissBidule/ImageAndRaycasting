@@ -12,6 +12,7 @@ void MultiMesh::addTriangleMesh(Triangle* triangle) {
 }
 
 double MultiMesh::raytrace(Ray& ray, Hit& hit) {
+    ++raysLocal;
     if (intersection(ray.rayPos, ray.rayDir)) return 0;
     return -1;
 }
@@ -154,14 +155,16 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material& mat) {
     float actualAmplitude = maxCoord - minCoord;
     if (actualAmplitude == 0) return;
     float factor = 2 / actualAmplitude;
-    //should rebase min
+    _min = _min * factor;
+    _max = _max * factor;
+    Vec3f rebaseVec = Vec3f{-1, -1, -1} - _min;
     std::cout << minCoord << " " << maxCoord << std::endl;
     std::cout << factor << std::endl;
     std::vector<std::unique_ptr<Triangle>> triangleList;
     for (size_t i = 0; i < trianglesVertex.size(); i+=3) {
-        trianglesVertex[i] = (trianglesVertex[i] * factor);
-        trianglesVertex[i + 1] = (trianglesVertex[i + 1] * factor);
-        trianglesVertex[i + 2] = (trianglesVertex[i + 2] * factor);
+        trianglesVertex[i] = (trianglesVertex[i] * factor) + rebaseVec;
+        trianglesVertex[i + 1] = (trianglesVertex[i + 1] * factor) + rebaseVec;
+        trianglesVertex[i + 2] = (trianglesVertex[i + 2] * factor) + rebaseVec;
 
         Triangle* newTriangle = new Triangle(
             trianglesVertex[i + 0],
@@ -175,8 +178,8 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material& mat) {
         }
         addTriangleMesh(newTriangle);
     }
-    min = _min * factor;
-    max = _max * factor;
+    min = _min + rebaseVec;
+    max = _max + rebaseVec;
     
     std::cout << min << " " << max << std::endl;
 }

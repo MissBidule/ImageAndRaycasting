@@ -3,6 +3,7 @@
 Plane::Plane(Vec3f pos, Vec3f _normal, Material* mat, bool isPartOfObj) : Primitive(pos, mat, isPartOfObj), normal(_normal.normalize()) {}
 
 double Plane::raytrace(Ray& ray, Hit& hit) {
+    ++raysLocal;
     double d = intersection(ray.rayPos + ray.rayDir * offset, ray.rayDir);
     Vec3f fragPos = ray.rayPos + ray.rayDir * (float)d;
 

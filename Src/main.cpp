@@ -90,8 +90,8 @@ int main(int argc, char* argv [])
         MultiMesh Obj = MultiMesh("sofa", Mc2);
 //        Obj.setScale(100);
 //        Obj.setTranslate(Vec3f{-250, -250, 1500});
-         Obj.setScale(600);
-         Obj.setTranslate(Vec3f{-550, -550, 2000});
+        Obj.setScale(600);
+        Obj.setTranslate(Vec3f{0, 0, 2500});
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv [])
         
         orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
         
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho : " << Primitive::rays << " rays" << std::endl;
         
         //change and draw in perspective
         cam.viewType = ViewType::PERSP;
@@ -115,7 +115,7 @@ int main(int argc, char* argv [])
         
         perspImg->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
         
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for persp" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for persp : " << Primitive::rays << " rays" << std::endl;
         
         delete img;
         delete orthoImg;

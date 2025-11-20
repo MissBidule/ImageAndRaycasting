@@ -3,6 +3,7 @@
 Circle::Circle(Vec3f pos, float _radius, Material* mat, bool isPartOfObj) : Primitive(pos, mat, isPartOfObj), radius(_radius) {}
 
 double Circle::raytrace(Ray& ray, Hit& hit) {
+    ++raysLocal;
     Vec3f OC = pos - (ray.rayPos + ray.rayDir * offset);
     double d = intersection(ray.rayDir, OC);
     Vec3f fragPos = ray.rayPos + ray.rayDir * (float)d;

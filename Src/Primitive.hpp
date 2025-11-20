@@ -8,6 +8,8 @@
 class Primitive;
 class Triangle;
 
+extern thread_local uint64_t raysLocal;
+
 struct Hit {
     Primitive* object = nullptr;
     Vec3f fragPos;
@@ -24,6 +26,8 @@ class Primitive {
         virtual void setScale(float newScale) = 0;
         virtual void setTranslate(Vec3f newTranslate) = 0;
         virtual const std::vector<Primitive*>& getMeshes(); //used for multiMesh
+    
+        static std::atomic<uint64_t> rays;
 
     protected:
         static Vec3f definitiveColor(Ray& ray, Vec3f camPos, int depth = 5);

@@ -14,6 +14,7 @@ void Triangle::setNormalByVertex(Vec3f norm0, Vec3f norm1, Vec3f norm2) {
 }
 
 double Triangle::raytrace(Ray& ray, Hit& hit) {
+    ++raysLocal;
     float u = 0;
     float v = 0;
     double d = intersection(ray.rayPos + ray.rayDir * offset, ray.rayDir, u, v);
