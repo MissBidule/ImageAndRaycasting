@@ -14,7 +14,7 @@ bool sortByDepth(const Primitive& a, const Primitive& b)
 }
 //std::sort(Primitive::ObjectList.begin(), Primitive::ObjectList.end(), sortByDepth);
 
-Primitive::Primitive(Vec3f _pos, Material _mat) : pos(_pos), mat(_mat) {
+Primitive::Primitive(Vec3f _pos, Material& _mat) : pos(_pos), mat(&_mat) {
     objectList.emplace_back(this);
 }
 
@@ -35,14 +35,16 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
             {
                 float jRand = distribution(generator);
                 float iRand = distribution(generator);
+                Ray ray;
                 if (cam.viewType == ViewType::ORTHO) {
-                    Vec3f rayOrig{(cam.viewPos.x - cam.width/2 + i + iRand), - (cam.viewPos.y - cam.height/2 + j + jRand), (cam.viewPos.z)};
-                    colorMix = colorMix + Primitive::definitiveColor(rayOrig, Vec3f{0, 0, 1}, cam.viewPos);
+                    ray.rayPos = Vec3f{(cam.viewPos.x - cam.width/2 + i + iRand), - (cam.viewPos.y - cam.height/2 + j + jRand), (cam.viewPos.z)};
+                    ray.rayDir = Vec3f{0, 0, 1};
                 }
                 else {
-                    Vec3f rayDir = Vec3f{i + iRand - (float)cam.width/2, - (j + jRand) + (float)cam.height/2, (float)cam.FOV}.normalize();
-                    colorMix = colorMix + Primitive::definitiveColor(cam.viewPos, rayDir, cam.viewPos);
+                    ray.rayPos = cam.viewPos;
+                    ray.rayDir = Vec3f{i + iRand - (float)cam.width/2, - (j + jRand) + (float)cam.height/2, (float)cam.FOV}.normalize();
                 }
+                colorMix = colorMix + Primitive::definitiveColor(ray, cam.viewPos);
             }
             returnImg->pixel(i, j) = Color::colorFromVec3f(colorMix / samples);
         }
@@ -51,7 +53,7 @@ ColorImage* Primitive::draw(const ColorImage& img, Camera cam, int samples) {
     return returnImg;
 }
 
-Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth) {
+Vec3f Primitive::definitiveColor(Ray& ray, Vec3f camPos, int depth) {
     if (depth <= 0) {
         return defaultColor;
     }
@@ -62,7 +64,7 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth)
     index = 0;
     distance = -1;
     for (size_t u = 0; u < objectList.size(); u ++) {
-        temp = objectList[u]->raytrace(orig, dir);
+        temp = objectList[u]->raytrace(ray);
         if ((temp != -1 && temp < distance) || distance == -1) {
             distance = temp;
             index = u;
@@ -73,25 +75,27 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth)
         return defaultColor;
     }
     
-    Vec3f fragPos = orig + dir * (float)distance;
+    Vec3f fragPos = ray.rayPos + ray.rayDir * (float)distance;
     Vec3f reflectionDir;
     Vec3f colorMultiply;
 
-    switch (objectList[index]->mat.type)
+    switch (objectList[index]->mat->type)
     {
         case MaterialType::DIFFUSE:
-            return objectList[index]->diffuseCalculation(fragPos, camPos, distance);
+            return objectList[index]->diffuseCalculation(fragPos, camPos, distance, ray);
             
             break;
         case MaterialType::TRANSPARENT:
-            colorMultiply = (Vec3f)objectList[index]->mat.ambient * objectList[index]->mat.alpha + Vec3f{1, 1, 1} * (1 - objectList[index]->mat.alpha);
-            return objectList[index]->transparentCalculation(fragPos, camPos, dir, depth) * colorMultiply;
+            colorMultiply = (Vec3f)objectList[index]->mat->ambient * objectList[index]->mat->alpha + Vec3f{1, 1, 1} * (1 - objectList[index]->mat->alpha);
+            return objectList[index]->transparentCalculation(fragPos, camPos, ray, depth) * colorMultiply;
 
             break;
         case MaterialType::REFLECTIVE:
-            colorMultiply = (Vec3f)objectList[index]->mat.ambient;
-            reflectionDir = (dir.reflect(objectList[index]->normalAtPoint(fragPos, dir))).normalize();
-            return definitiveColor(fragPos, reflectionDir, camPos, --depth) * colorMultiply;
+            colorMultiply = (Vec3f)objectList[index]->mat->ambient;
+            reflectionDir = (ray.rayDir.reflect(objectList[index]->normalAtPoint(fragPos, ray))).normalize();
+            ray.rayPos = fragPos;
+            ray.rayDir = reflectionDir;
+            return definitiveColor(ray, camPos, --depth) * colorMultiply;
 
             break;
         default:
@@ -101,11 +105,11 @@ Vec3f Primitive::definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth)
     return defaultColor;
 }
 
-Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, int depth) {
+Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, const Ray &ray, int depth) const {
 
-    Vec3f normal = normalAtPoint(fragPos, dir);
-    double ri = retrieveNormalDir(normal, dir) ? 1.0 / mat.ior : mat.ior;
-    double cosTheta = (-dir).dot(normal);
+    Vec3f normal = normalAtPoint(fragPos, ray);
+    double ri = retrieveNormalDir(normal, ray.rayDir) ? 1.0 / mat->ior : mat->ior;
+    double cosTheta = (-ray.rayDir).dot(normal);
     double sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
     float kr = Material::reflectance(cosTheta, ri);
 
@@ -117,11 +121,19 @@ Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, 
     bool cannotRefract = ri * sinTheta > 1.0;
 
 
-    Vec3f reflectDir = (dir.reflect(normal)).normalize();
-    reflectColor = definitiveColor(fragPos, reflectDir, camPos, depth);
+    Vec3f reflectDir = (ray.rayDir.reflect(normal)).normalize();
+    Ray reflectRay = {
+        fragPos,
+        reflectDir
+    };
+    reflectColor = definitiveColor(reflectRay, camPos, depth);
     if (!cannotRefract) {
-        Vec3f refractDir = dir.refract(normal, ri);
-        refractColor = definitiveColor(fragPos, refractDir, camPos, depth);
+        Vec3f refractDir = ray.rayDir.refract(normal, ri);
+        Ray refractRay = {
+            fragPos,
+            refractDir
+        };
+        refractColor = definitiveColor(refractRay, camPos, depth);
     }
     else kr = 1;
 
@@ -130,7 +142,7 @@ Vec3f Primitive::transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, 
     return color;
 }
 
-Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance) {    
+Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance, const Ray& ray) const {    
     //test shadow or light
     Vec3f finalColor{0, 0, 0};
    for (size_t i = 0; i < Light::lightList.size(); i++) {
@@ -149,15 +161,19 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
             float distance = ray.norm();
             attenuation = 1.0f / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));
             for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->raytrace(fragPos, ray.normalize());
+                Ray lightRay = {
+                    fragPos,
+                    ray.normalize()
+                };
+                temp = objectList[u]->raytrace(lightRay);
                 if (temp != -1 && (temp - distance) < offset) {
-                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
-                        shadowAlpha += objectList[u]->mat.alpha;
+                    if (objectList[u]->mat->type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += objectList[u]->mat->alpha;
                         if (shadowAlpha >= 1) {
                             shadowAlpha = 1;
                             break;
                         }
-                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
+                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat->ambient) * objectList[u]->mat->alpha);
                     }
                     else {
                         shadowAlpha = 1;
@@ -170,15 +186,19 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
         else if (currentLight.type == LightType::DIR) {
             lightDir = (- currentLight.pos).normalize();
             for (size_t u = 0; u < objectList.size(); u ++) {
-                temp = objectList[u]->raytrace(fragPos, lightDir);
+                Ray lightRay = {
+                    fragPos,
+                    lightDir
+                };
+                temp = objectList[u]->raytrace(lightRay);
                 if (temp != -1) {
-                    if (objectList[u]->mat.type == MaterialType::TRANSPARENT) {
-                        shadowAlpha += objectList[u]->mat.alpha;
+                    if (objectList[u]->mat->type == MaterialType::TRANSPARENT) {
+                        shadowAlpha += objectList[u]->mat->alpha;
                         if (shadowAlpha >= 1) {
                             shadowAlpha = 1;
                             break;
                         }
-                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat.ambient) * objectList[u]->mat.alpha);
+                        lightColor = lightColor - ((Vec3f() - (Vec3f)objectList[u]->mat->ambient) * objectList[u]->mat->alpha);
                     }
                     else {
                         shadowAlpha = 1;
@@ -189,7 +209,7 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance
         }
 
         //final color
-        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat.ambient * shadowAlpha * attenuation;
+        finalColor = finalColor + phongColor(fragPos, lightColor, lightDir, camPos, ray, attenuation) * (1 - shadowAlpha) + lightColor * (Vec3f)mat->ambient * shadowAlpha * attenuation;
         
         // float pdf = 1.0f / Light::lightList.size();
     }
@@ -201,11 +221,11 @@ bool Primitive::retrieveNormalDir(Vec3f normal, Vec3f rayDir) const {
     return rayDir.dot(normal) <= 0;
 }
 
-Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, float attenuation) {
-    Vec3f normal = normalAtPoint(fragPos);
-    Vec3f matAmbient = mat.ambient;
-    Vec3f matDiffuse = mat.diffuse;
-    Vec3f matSpecular = mat.specular;
+Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, const Ray& ray, float attenuation) const {
+    Vec3f normal = normalAtPoint(fragPos, ray);
+    Vec3f matAmbient = mat->ambient;
+    Vec3f matDiffuse = mat->diffuse;
+    Vec3f matSpecular = mat->specular;
     
     //ambient
     Vec3f ambient = lightColor * matAmbient * attenuation;
@@ -217,7 +237,7 @@ Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec
     //specular
     Vec3f viewDir = (camPos - fragPos).normalize();
     Vec3f reflectDir = (-lightDir).reflect(normal);
-    float spec = std::pow(std::max(viewDir.dot(reflectDir), 0.0f), mat.shininess * 128);
+    float spec = std::pow(std::max(viewDir.dot(reflectDir), 0.0f), mat->shininess * 128);
     Vec3f specular = matSpecular * lightColor * spec * attenuation;
 
     return ambient + diffuse + specular;

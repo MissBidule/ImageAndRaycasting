@@ -5,13 +5,13 @@
 
 class Triangle : public Primitive {
     public:
-        Triangle(Vec3f vert0, Vec3f vert1, Vec3f vert2, Material mat);
+        Triangle(Vec3f vert0, Vec3f vert1, Vec3f vert2, Material& mat);
         void setNormalByVertex(Vec3f norm0, Vec3f norm1, Vec3f norm2);
 
     private:
-        Vec3f normalAtPoint(Vec3f fragPos, Vec3f rayDir) const override;
-        double raytrace(Vec3f rayPos, Vec3f dir) const override;
-        double intersection(Vec3f rayPos, Vec3f dir) const;
+        Vec3f normalAtPoint(Vec3f fragPos, const Ray& ray) const override;
+        double raytrace(Ray& ray) const override;
+        double intersection(Vec3f rayPos, Vec3f dir, float& u, float& v) const;
 
         Vec3f defaultNormal;
         Vec3f vertex0;

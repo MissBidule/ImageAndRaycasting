@@ -5,11 +5,11 @@
 
 class Plane : public Primitive {
     public:
-        Plane(Vec3f pos, Vec3f normal, Material mat);
+        Plane(Vec3f pos, Vec3f normal, Material& mat);
 
     private:
-        Vec3f normalAtPoint(Vec3f fragPos, Vec3f rayDir) const override;
-        double raytrace(Vec3f rayPos, Vec3f dir) const override;
+        Vec3f normalAtPoint(Vec3f fragPos, const Ray& ray) const override;
+        double raytrace(Ray& ray) const override;
         double intersection(Vec3f rayPos, Vec3f dir) const;
 
         Vec3f normal;

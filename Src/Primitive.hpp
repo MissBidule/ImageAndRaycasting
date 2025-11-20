@@ -14,20 +14,20 @@ class Primitive {
         static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 4);
 
     protected:
-        static Vec3f definitiveColor(Vec3f orig, Vec3f dir, Vec3f camPos, int depth = 5);
-        Vec3f transparentCalculation(Vec3f fragPos, Vec3f camPos, Vec3f dir, int depth);
-        Vec3f diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance);
-        Vec3f phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, float attenuation);
+        static Vec3f definitiveColor(Ray& ray, Vec3f camPos, int depth = 5);
+        Vec3f transparentCalculation(Vec3f fragPos, Vec3f camPos, const Ray &ray, int depth) const;
+        Vec3f diffuseCalculation(Vec3f fragPos, Vec3f camPos, double distance, const Ray& ray) const;
+        Vec3f phongColor(Vec3f fragPos, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, const Ray& ray, float attenuation) const;
         bool retrieveNormalDir(Vec3f normal, Vec3f rayDir) const;
-        virtual Vec3f normalAtPoint(Vec3f fragPos, Vec3f rayDir = Vec3f{0, 0, 0}) const = 0;
-        virtual double raytrace(Vec3f rayPos, Vec3f dir) const = 0;
+        virtual Vec3f normalAtPoint(Vec3f fragPos, const Ray& ray) const = 0;
+        virtual double raytrace(Ray& ray) const = 0;
         
         friend bool sortByDepth(const Primitive& a, const Primitive& b);
 
-        Primitive(Vec3f _pos, Material _mat);
+        Primitive(Vec3f _pos, Material& _mat);
 
         Vec3f pos;
-        Material mat;
+        Material* mat;
 
         const float offset = 0.1f;
 };

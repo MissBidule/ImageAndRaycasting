@@ -1,11 +1,11 @@
 #include "Circle.hpp"
 
-Circle::Circle(Vec3f pos, float _radius, Material mat) : Primitive(pos, mat), radius(_radius) {}
+Circle::Circle(Vec3f pos, float _radius, Material& mat) : Primitive(pos, mat), radius(_radius) {}
 
-double Circle::raytrace(Vec3f rayPos, Vec3f dir) const {
-    Vec3f OC = pos - (rayPos + dir * offset);
+double Circle::raytrace(Ray& ray) const {
+    Vec3f OC = pos - (ray.rayPos + ray.rayDir * offset);
     
-    return intersection(dir, OC);
+    return intersection(ray.rayDir, OC);
 }
 
 double Circle::intersection(Vec3f dir, Vec3f OC) const {
@@ -21,9 +21,9 @@ double Circle::intersection(Vec3f dir, Vec3f OC) const {
     return -1;
 }
 
-Vec3f Circle::normalAtPoint(Vec3f fragPos, Vec3f rayDir) const {
+Vec3f Circle::normalAtPoint(Vec3f fragPos, const Ray& ray) const {
     Vec3f outwardNormal = (fragPos - pos).normalize();
-    int face = retrieveNormalDir(outwardNormal, rayDir) ? 1 : -1;
+    int face = retrieveNormalDir(outwardNormal, ray.rayDir) ? 1 : -1;
     return outwardNormal * face;
 }
 

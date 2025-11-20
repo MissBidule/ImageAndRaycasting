@@ -1,9 +1,9 @@
 #include "Plane.hpp"
 
-Plane::Plane(Vec3f pos, Vec3f _normal, Material mat) : Primitive(pos, mat), normal(_normal.normalize()) {}
+Plane::Plane(Vec3f pos, Vec3f _normal, Material& mat) : Primitive(pos, mat), normal(_normal.normalize()) {}
 
-double Plane::raytrace(Vec3f rayPos, Vec3f dir) const {
-    return intersection(rayPos + dir * offset, dir);
+double Plane::raytrace(Ray& ray) const {
+    return intersection(ray.rayPos + ray.rayDir * offset, ray.rayDir);
 }
 
 double Plane::intersection(Vec3f rayPos, Vec3f dir) const {
@@ -17,6 +17,6 @@ double Plane::intersection(Vec3f rayPos, Vec3f dir) const {
     return t > 0 ? t : -1 ;
 }
 
-Vec3f Plane::normalAtPoint(Vec3f fragPos, Vec3f rayDir) const {
-    return normal * (2 *(retrieveNormalDir(normal, rayDir)) - 1);
+Vec3f Plane::normalAtPoint(Vec3f fragPos, const Ray& ray) const {
+    return normal * (2 *(retrieveNormalDir(normal, ray.rayDir)) - 1);
 }

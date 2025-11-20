@@ -28,8 +28,8 @@ int main(int argc, char* argv [])
 
         // we create light(s)
         Light pointLight {
-            Vec3f{280, 100, 900},
-            Color(255, 255, 255),
+            Vec3f{0, 100, 2000},
+            Color(255, 255, 0),
             LightType::POINT
         };
         Light dirLight {
@@ -92,15 +92,15 @@ int main(int argc, char* argv [])
 
         std::vector<Triangle*> triangleList;
         std::vector<Vec3f> normals;
-        std::vector<Vec3f> vertexList = loadObjtriangles("cube", -200, 200, normals);
+        std::vector<Vec3f> vertexList = loadObjtriangles("cube", -100, 100, normals);
         for (size_t i = 0; i < vertexList.size(); i+=3) {
-//            vertexList[i] = vertexList[i] + Vec3f{-550, -550, 2000};
-//            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-550, -550, 2000};
-//            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-550, -550, 2000};
+        //    vertexList[i] = vertexList[i] + Vec3f{-550, -550, 2000};
+        //    vertexList[i + 1] = vertexList[i + 1] + Vec3f{-550, -550, 2000};
+        //    vertexList[i + 2] = vertexList[i + 2] + Vec3f{-550, -550, 2000};
             
-            vertexList[i] = vertexList[i] + Vec3f{-150, -550, 2500};
-            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-150, -550, 2500};
-            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-150, -550, 2500};
+            vertexList[i] = vertexList[i] + Vec3f{-250, -250, 1500};
+            vertexList[i + 1] = vertexList[i + 1] + Vec3f{-250, -250, 1500};
+            vertexList[i + 2] = vertexList[i + 2] + Vec3f{-250, -250, 1500};
 
             triangleList.emplace_back(new Triangle{
                 vertexList[i + 0],
@@ -110,7 +110,7 @@ int main(int argc, char* argv [])
             });
             
             if (normals.size() == vertexList.size()) {
-                triangleList[i]->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
+                triangleList[i/3]->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
             }
         }
 
