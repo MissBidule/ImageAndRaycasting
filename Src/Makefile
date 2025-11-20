@@ -10,9 +10,9 @@ DEL=rm
 INCPATH_JPEG=-I/opt/homebrew/opt/jpeg/include -I/opt/homebrew/Cellar/libomp/21.1.5/include
 LDPATH_JPEG=-L/opt/homebrew/opt/jpeg/lib -L/opt/homebrew/Cellar/libomp/21.1.5/lib
 
-SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp Primitive.cpp Circle.cpp Plane.cpp Triangle.cpp
+SOURCES=main.cpp Utils.cpp Color.cpp ColorImage.cpp GreyImage.cpp Primitive.cpp Circle.cpp Plane.cpp Triangle.cpp MultiMesh.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-HEADERS=Image.hpp Utils.hpp Color.hpp ColorImage.hpp GreyImage.hpp Primitive.hpp Circle.hpp Misc.hpp Plane.hpp Triangle.hpp tiny_obj_loader.h
+HEADERS=Image.hpp Utils.hpp Color.hpp ColorImage.hpp GreyImage.hpp Primitive.hpp Circle.hpp Misc.hpp Plane.hpp Triangle.hpp tiny_obj_loader.h MultiMesh.hpp
 
 .PHONY: all clean
 

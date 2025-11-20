@@ -1,6 +1,4 @@
 // main.cpp
-#define TINYOBJLOADER_IMPLEMENTATION
-
 #include <iostream>
 #include <fstream>
 #include <omp.h>
@@ -11,13 +9,11 @@
 #include "Triangle.hpp"
 #include "GreyImage.hpp"
 #include "Plane.hpp"
-#include "tiny_obj_loader.h"
+#include "MultiMesh.hpp"
 
 
 const int width = 1200;
 const int height = 1200;
-
-std::vector<std::unique_ptr<Triangle>> loadObjtriangles(std::string objFileName, Material& mat);
 
 int main(int argc, char* argv [])
 {
@@ -76,11 +72,11 @@ int main(int argc, char* argv [])
             0.088
         };
 
-        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, Mc5);
+        Plane p1(Vec3f{0, -600, 0}, Vec3f{0, 1, 0}, &Mc5);
         //Plane p2(Vec3f{600, 0, 0}, Vec3f{-1, 0, 0}, Mc2);
         //Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
-        Plane p5(Vec3f{0, 0, 5800}, Vec3f{0, 0, -1}, Mc0);
+        Plane p5(Vec3f{0, 0, 5800}, Vec3f{0, 0, -1}, &Mc0);
     
         //our camera defines our final view
         Camera cam {
@@ -91,13 +87,11 @@ int main(int argc, char* argv [])
             1300
         };
 
-        std::vector<std::unique_ptr<Triangle>> triangleList = loadObjtriangles("cube", Mc2);
-        for (size_t i = 0; i < triangleList.size(); i++) {
-            triangleList[i]->setScale(100);
-            triangleList[i]->setTranslate(Vec3f{-250, -250, 1500});
-            // triangleList[i]->setScale(600);
-            // triangleList[i]->setTranslate(Vec3f{-550, -550, 2000});
-        }
+        MultiMesh Obj = MultiMesh("sofa", Mc2);
+//        Obj.setScale(100);
+//        Obj.setTranslate(Vec3f{-250, -250, 1500});
+         Obj.setScale(600);
+         Obj.setTranslate(Vec3f{-550, -550, 2000});
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -373,96 +367,4 @@ int main(int argc, char* argv [])
     }*/
 
 	return 0;
-}
-
-std::vector<std::unique_ptr<Triangle>> loadObjtriangles(std::string objFileName, Material& mat) {
-
-    std::string inputfile = "objFiles/" + objFileName + ".obj";
-    tinyobj::ObjReaderConfig reader_config;
-
-    tinyobj::ObjReader reader;
-
-    if (!reader.ParseFromFile(inputfile, reader_config)) {
-        if (!reader.Error().empty()) {
-            std::cerr << "1.TinyObjReader: " << reader.Error();
-        }
-        exit(1);
-    }
-
-    if (!reader.Warning().empty()) {
-        std::cout << "2.TinyObjReader: " << reader.Warning();
-    }
-
-    auto& attrib = reader.GetAttrib();
-    auto& shapes = reader.GetShapes();
-
-    float min = 0;
-    float max = 0;
-    std::vector<Vec3f> trianglesVertex;
-    std::vector<Vec3f> normals;
-
-    // Loop over shapes
-    for (size_t s = 0; s < shapes.size(); s++) {
-        // Loop over faces(polygon)
-        size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-            size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
-
-            // Loop over vertices in the face.
-            for (size_t v = 0; v < fv; v++) {
-                // access to vertex
-                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                tinyobj::real_t vx = attrib.vertices[3*size_t(idx.vertex_index)+0];
-                tinyobj::real_t vy = attrib.vertices[3*size_t(idx.vertex_index)+1];
-                tinyobj::real_t vz = -attrib.vertices[3*size_t(idx.vertex_index)+2];
-                
-                Vec3f vertex{vx, vy, vz};
-                trianglesVertex.emplace_back(vertex);
-                
-                if (idx.normal_index >= 0) {
-                    tinyobj::real_t nx = attrib.normals[3*size_t(idx.normal_index)+0];
-                    tinyobj::real_t ny = attrib.normals[3*size_t(idx.normal_index)+1];
-                    tinyobj::real_t nz = -attrib.normals[3*size_t(idx.normal_index)+2];
-                    
-                    Vec3f normal{nx, ny, nz};
-                    normals.emplace_back(normal);
-                  }
-
-                float tempMin = vx < vy ? vx : vy;
-                tempMin = vz < tempMin ? vz : tempMin;
-                if ((s == 0 && v == 0) || tempMin < min) min = tempMin;
-                float tempMax = vx > vy ? vx : vy;
-                tempMax = vz > tempMax ? vz : tempMax;
-                if ((s == 0 && v == 0) || tempMax > max) max = tempMax;
-            }
-            index_offset += fv;
-        }
-    }
-    
-    float actualAmplitude = max - min;
-    if (actualAmplitude == 0) return {};
-    float factor = 2 / actualAmplitude;
-    //should rebase min
-    std::cout << max << " " << min << std::endl;
-    std::cout << factor << std::endl;
-    std::vector<std::unique_ptr<Triangle>> triangleList;
-    triangleList.reserve(trianglesVertex.size()/3);
-    for (size_t i = 0; i < trianglesVertex.size(); i+=3) {
-        trianglesVertex[i] = (trianglesVertex[i] * factor);
-        trianglesVertex[i + 1] = (trianglesVertex[i + 1] * factor);
-        trianglesVertex[i + 2] = (trianglesVertex[i + 2] * factor);
-
-        triangleList.emplace_back(std::make_unique<Triangle>(
-            trianglesVertex[i + 0],
-            trianglesVertex[i + 1],
-            trianglesVertex[i + 2],
-            mat
-        ));
-        
-        if (normals.size() == trianglesVertex.size()) {
-            triangleList[i/3]->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
-        }
-    }
-
-    return triangleList;
 }

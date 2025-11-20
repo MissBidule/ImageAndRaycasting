@@ -23,7 +23,7 @@ class Primitive {
         static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 4);
         virtual void setScale(float newScale) = 0;
         virtual void setTranslate(Vec3f newTranslate) = 0;
-        virtual std::vector<Triangle>& getMeshes() const; //used for multiMesh
+        virtual const std::vector<Primitive*>& getMeshes(); //used for multiMesh
 
     protected:
         static Vec3f definitiveColor(Ray& ray, Vec3f camPos, int depth = 5);
@@ -35,7 +35,7 @@ class Primitive {
         
         friend bool sortByDepth(const Primitive& a, const Primitive& b);
 
-        Primitive(Vec3f _pos, Material& _mat, bool isPartOfObj = false);
+        Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj = false);
 
         Vec3f pos;
         Material* mat;

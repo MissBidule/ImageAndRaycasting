@@ -5,7 +5,7 @@
 
 class Circle : public Primitive {
     public:
-        Circle(Vec3f pos, float _radius, Material& mat, bool isPartOfObj = false);
+        Circle(Vec3f pos, float _radius, Material* mat, bool isPartOfObj = false);
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
 

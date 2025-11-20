@@ -1,6 +1,6 @@
 #include "Circle.hpp"
 
-Circle::Circle(Vec3f pos, float _radius, Material& mat, bool isPartOfObj) : Primitive(pos, mat, isPartOfObj), radius(_radius) {}
+Circle::Circle(Vec3f pos, float _radius, Material* mat, bool isPartOfObj) : Primitive(pos, mat, isPartOfObj), radius(_radius) {}
 
 double Circle::raytrace(Ray& ray, Hit& hit) {
     Vec3f OC = pos - (ray.rayPos + ray.rayDir * offset);

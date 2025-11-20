@@ -5,7 +5,7 @@
 
 class Plane : public Primitive {
     public:
-        Plane(Vec3f pos, Vec3f normal, Material& mat, bool isPartOfObj = false);
+        Plane(Vec3f pos, Vec3f normal, Material* mat, bool isPartOfObj = false);
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
 

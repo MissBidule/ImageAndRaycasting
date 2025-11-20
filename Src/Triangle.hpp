@@ -5,7 +5,7 @@
 
 class Triangle : public Primitive {
     public:
-        Triangle(Vec3f vert0, Vec3f vert1, Vec3f vert2, Material& mat, bool isPartOfObj = false);
+        Triangle(Vec3f vert0, Vec3f vert1, Vec3f vert2, Material* mat, bool isPartOfObj = false);
         void setNormalByVertex(Vec3f norm0, Vec3f norm1, Vec3f norm2);
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
