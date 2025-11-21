@@ -1,5 +1,7 @@
 #include "Triangle.hpp"
 
+Triangle::Triangle(const Triangle* t, Material* mat, bool isPartOfObj) : Primitive(t->pos, mat, isPartOfObj), vertex0(t->vertex0), vertex1(t->vertex1), vertex2(t->vertex2), defaultNormal(t->defaultNormal), normalByVertex(t->normalByVertex) {}
+
 Triangle::Triangle(Vec3f vert0, Vec3f vert1, Vec3f vert2, Material* mat, bool isPartOfObj) : Primitive(Vec3f{0,0,0}, mat, isPartOfObj), vertex0(vert0), vertex1(vert1), vertex2(vert2) {
     pos = Vec3f{(vert0.x + vert1.x + vert2.x) / 3.0f, (vert0.y + vert1.y + vert2.y) / 3.0f, (vert0.z + vert1.z + vert2.z) / 3.0f};
     Vec3f edge1 = vert2 - vert0;

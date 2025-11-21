@@ -46,6 +46,7 @@ class Primitive {
         bool multiMesh = false;
 
         const float offset = 0.1f;
+        const Vec3f globalAmbientLight = Vec3f(0.05f, 0.05f, 0.05f);
 };
 
 #endif //_PRIMITIVE_HPP_

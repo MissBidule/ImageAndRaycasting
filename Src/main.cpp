@@ -31,7 +31,7 @@ int main(int argc, char* argv [])
         };
         Light dirLight {
             Vec3f{0, -1, 1},
-            Color(170, 170, 170),
+            Color(255, 255, 255),
             LightType::DIR
         };
         
@@ -43,11 +43,12 @@ int main(int argc, char* argv [])
             0.6
         };
 
-        Material Mc1 {Color::colorFromFloat(1, 1, 0)};
+        Material Mc1;
+        Mc1.diffuse = Color::colorFromFloat(1, 1, 0);
         Mc1.type = MaterialType::REFLECTIVE;
 
         Material Mc2 {
-            Color::colorFromFloat(0.0215, 0.1745, 0.0215),
+            Color::colorFromFloat(1, 1, 1),
             Color::colorFromFloat(0.07568, 0.61424, 0.07568),
             Color::colorFromFloat(0.633, 0.727811, 0.633),
             0.6
@@ -60,8 +61,9 @@ int main(int argc, char* argv [])
             0.6
         };
 
-        Material Mc4 {Color::colorFromFloat(1, 1, 0)};
-        Mc4.alpha = 0.2f;
+        Material Mc4;
+        Mc4.diffuse = Color::colorFromFloat(0, 1, 0);
+        Mc4.alpha = 0.5f;
         Mc4.ior = 1;
         Mc4.type = MaterialType::TRANSPARENT;
 
@@ -87,11 +89,12 @@ int main(int argc, char* argv [])
             1300
         };
 
-        MultiMesh Obj = MultiMesh("sofa", Mc2);
-//        Obj.setScale(100);
-//        Obj.setTranslate(Vec3f{-250, -250, 1500});
-        Obj.setScale(600);
-        Obj.setTranslate(Vec3f{0, 0, 2500});
+        MultiMesh Obj = MultiMesh("cube", &Mc4);
+        MultiMesh Obj2 = MultiMesh(Obj, &Mc2);
+        Obj.setScale(100);
+        Obj.setTranslate(Vec3f{-250, -250, 1500});
+//        Obj.setScale(600);
+//        Obj.setTranslate(Vec3f{0, 0, 2500});
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 

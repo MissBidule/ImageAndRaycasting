@@ -2,7 +2,16 @@
 #include "MultiMesh.hpp"
 #include "tiny_obj_loader.h"
 
-MultiMesh::MultiMesh(std::string objFileName, Material& mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
+MultiMesh::MultiMesh(MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false), min(mm.min), max(mm.max) {
+    std::vector<Primitive*> meshes = mm.getMeshes();
+    for (int i = 0; i < meshes.size(); i++) {
+        const Triangle* mesh = dynamic_cast<Triangle*>(meshes[i]);
+        Triangle* newMesh = new Triangle(mesh, mat, true);
+        addTriangleMesh(newMesh);
+    }
+}
+
+MultiMesh::MultiMesh(std::string objFileName, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
     multiMesh = true;
     loadObjtriangles(objFileName, mat);
 }
@@ -78,7 +87,7 @@ void MultiMesh::setTranslate(Vec3f newTranslate) {
     max = max + newTranslate;
 }
 
-void MultiMesh::loadObjtriangles(std::string objFileName, Material& mat) {
+void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
 
     std::string inputfile = "objFiles/" + objFileName + ".obj";
     tinyobj::ObjReaderConfig reader_config;
@@ -170,7 +179,7 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material& mat) {
             trianglesVertex[i + 0],
             trianglesVertex[i + 1],
             trianglesVertex[i + 2],
-            &mat,
+            mat,
             true
         );
         if (normals.size() == trianglesVertex.size()) {
