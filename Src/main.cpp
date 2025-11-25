@@ -44,7 +44,7 @@ int main(int argc, char* argv [])
         };
 
         Material Mc1;
-        Mc1.diffuse = Color::colorFromFloat(1, 1, 0);
+        Mc1.diffuse = Color::colorFromFloat(0.9, 0.9, 0.9);
         Mc1.type = MaterialType::REFLECTIVE;
 
         Material Mc2 {
@@ -90,9 +90,11 @@ int main(int argc, char* argv [])
         };
 
         MultiMesh Obj = MultiMesh("cube", &Mc4);
-        MultiMesh Obj2 = MultiMesh(Obj, &Mc2);
+        MultiMesh Obj2 = MultiMesh(Obj, &Mc1);
         Obj.setScale(100);
         Obj.setTranslate(Vec3f{-250, -250, 1500});
+        Obj2.setScale(200);
+        Obj2.setTranslate(Vec3f{250, 150, 1500});
 //        Obj.setScale(600);
 //        Obj.setTranslate(Vec3f{0, 0, 2500});
 
@@ -105,7 +107,7 @@ int main(int argc, char* argv [])
         
         orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
         
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho : " << Primitive::rays << " rays" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho : " << Primitive::rays.load() << " rays" << std::endl;
         
         //change and draw in perspective
         cam.viewType = ViewType::PERSP;
@@ -118,7 +120,7 @@ int main(int argc, char* argv [])
         
         perspImg->writeJPEG("ofpicture/cropPicWithCirclesPersp.jpg", 100);
         
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for persp : " << Primitive::rays << " rays" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for persp : " << Primitive::rays.load() << " rays" << std::endl;
         
         delete img;
         delete orthoImg;

@@ -1,10 +1,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "MultiMesh.hpp"
 #include "tiny_obj_loader.h"
+#include <memory>
 
-MultiMesh::MultiMesh(MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false), min(mm.min), max(mm.max) {
+MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false), min(mm.min), max(mm.max) {
+    multiMesh = true;
     std::vector<Primitive*> meshes = mm.getMeshes();
-    for (int i = 0; i < meshes.size(); i++) {
+    for (size_t i = 0; i < meshes.size(); i++) {
         const Triangle* mesh = dynamic_cast<Triangle*>(meshes[i]);
         Triangle* newMesh = new Triangle(mesh, mat, true);
         addTriangleMesh(newMesh);
@@ -72,7 +74,7 @@ bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir) const {
 }
 
 void MultiMesh::setScale(float newScale) {
-    for (int i = 0; i < meshes.size(); i++) {
+    for (size_t i = 0; i < meshes.size(); i++) {
         meshes[i]->setScale(newScale);
     }
     min = min * newScale;
@@ -80,7 +82,7 @@ void MultiMesh::setScale(float newScale) {
 }
 
 void MultiMesh::setTranslate(Vec3f newTranslate) {
-    for (int i = 0; i < meshes.size(); i++) {
+    for (size_t i = 0; i < meshes.size(); i++) {
         meshes[i]->setTranslate(newTranslate);
     }
     min = min + newTranslate;

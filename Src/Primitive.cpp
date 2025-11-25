@@ -6,7 +6,7 @@
 std::vector<Primitive*> Primitive::objectList = std::vector<Primitive*>();
 std::vector<Light*> Light::lightList = std::vector<Light*>();
 Vec3f Primitive::defaultColor = Vec3f{0.2f, 0.2f, 0.9f};
-std::atomic<uint64_t> Primitive::rays = 0;
+std::atomic<uint64_t> Primitive::rays{0};
 thread_local uint64_t raysLocal = 0;
 
 //maybe too costly in time
@@ -180,6 +180,8 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
                 };
                 Hit hit;
                 temp = objectList[j]->raytrace(lightRay, hit);
+                Primitive* test = objectList[j];
+                Material* matTest = test->mat;
                 if (temp != -1 && objectList[j]->multiMesh) {
                     const std::vector<Primitive*> triangleMeshes = objectList[j]->getMeshes();
                     for (size_t k = 0; k < triangleMeshes.size(); k ++) {
@@ -201,7 +203,8 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
                     }
                 }
                 else if (temp != -1 && (temp - distance) < offset) {
-                    if (hit.object->mat->type == MaterialType::TRANSPARENT) {
+                    if (hit.object->mat->type == MaterialType::TRANSPARENT)
+                    {
                         shadowAlpha += hit.object->mat->alpha;
                         if (shadowAlpha >= 1) {
                             shadowAlpha = 1;
@@ -293,7 +296,7 @@ Vec3f Primitive::phongColor(Vec3f fragPos, Vec3f normal, Vec3f lightColor, Vec3f
     return  diffuse + specular;
 }
 
-const std::vector<Primitive*>& Primitive::getMeshes() {
+const std::vector<Primitive*>& Primitive::getMeshes() const {
     static const std::vector<Primitive*> empty;
     return empty;
 }

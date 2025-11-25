@@ -2,6 +2,7 @@
 #define _PRIMITIVE_HPP_
 
 #include <vector>
+#include <atomic>
 #include "ColorImage.hpp"
 #include "Misc.hpp"
 
@@ -25,7 +26,7 @@ class Primitive {
         static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 4);
         virtual void setScale(float newScale) = 0;
         virtual void setTranslate(Vec3f newTranslate) = 0;
-        virtual const std::vector<Primitive*>& getMeshes(); //used for multiMesh
+        virtual const std::vector<Primitive*>& getMeshes() const; //used for multiMesh
     
         static std::atomic<uint64_t> rays;
 
@@ -45,8 +46,8 @@ class Primitive {
         Material* mat;
         bool multiMesh = false;
 
-        const float offset = 0.1f;
-        const Vec3f globalAmbientLight = Vec3f(0.05f, 0.05f, 0.05f);
+        const float offset = 0.01f;
+        const Vec3f globalAmbientLight = Vec3f{0.05f, 0.05f, 0.05f};
 };
 
 #endif //_PRIMITIVE_HPP_

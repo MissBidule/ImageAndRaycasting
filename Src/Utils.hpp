@@ -66,6 +66,12 @@ struct Vec3 {
         return *this - v * 2 * this->dot(v);
     };
 
+ /*   template <typename T>
+Vec3<T> Vec3<T>::reflect(const Vec3<T>& I) const {
+    // *this = normal, I = incident ray
+    return I - (*this) * 2 * I.dot(*this);
+}/*
+
     Vec3<t> refract(const Vec3<t> normal, double etaiOverEtao) const {
         float cosTheta = std::fmin((-*this).dot(normal), 1.0f);
         Vec3<t> rOutPerp = ((*this) + normal * cosTheta) * (float)etaiOverEtao;
