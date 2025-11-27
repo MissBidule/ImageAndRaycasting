@@ -182,7 +182,6 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
                 };
                 Hit hit;
                 temp = objectList[j]->raytrace(lightRay, hit);
-                Primitive* test = objectList[j];
                 if (temp != -1 && objectList[j]->multiMesh) {
                     const std::vector<Primitive*> triangleMeshes = objectList[j]->getMeshes();
                     for (size_t k = 0; k < triangleMeshes.size(); k ++) {

@@ -89,15 +89,15 @@ int main(int argc, char* argv [])
             1300
         };
 
-//        MultiMesh Obj = MultiMesh("cube", &Mc4);
-//        MultiMesh Obj2 = MultiMesh(Obj, &Mc1);
-//        Obj.setScale(100);
-//        Obj.setTranslate(Vec3f{-250, -250, 1500});
-//        Obj2.setScale(200);
-//        Obj2.setTranslate(Vec3f{250, 150, 1500});
-        MultiMesh Obj = MultiMesh("sofa", &Mc2);
-        Obj.setScale(600);
-        Obj.setTranslate(Vec3f{0, 0, 2500});
+       MultiMesh Obj = MultiMesh("cube", &Mc4);
+       MultiMesh Obj2 = MultiMesh(Obj, &Mc1);
+       Obj.setScale(100);
+       Obj.setTranslate(Vec3f{-250, -250, 1500});
+       Obj2.setScale(200);
+       Obj2.setTranslate(Vec3f{250, 150, 1500});
+        // MultiMesh Obj = MultiMesh("sofa", &Mc2);
+        // Obj.setScale(600);
+        // Obj.setTranslate(Vec3f{0, 0, 2500});
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 

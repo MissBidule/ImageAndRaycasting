@@ -4,7 +4,9 @@ Ka 1.0 1.0 1.0
 Kd 0.07568 0.61424 0.07568
 Ks 0.633 0.727811 0.633
 Ns 0.6
-#alpha equivalent same as Tr 0.0
-d 1.0
-#Ni = ior
-#illum3 = mirror
+#ior
+Ni = 1
+#1 equals transparency 1-tf equals alpha
+Tf 0.0
+#illum 3 = mirror
+illum 2
