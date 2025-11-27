@@ -23,7 +23,6 @@ void MultiMesh::addTriangleMesh(Triangle* triangle) {
 }
 
 double MultiMesh::raytrace(Ray& ray, Hit& hit) {
-    ++raysLocal;
     if (intersection(ray.rayPos, ray.rayDir)) return 0;
     return -1;
 }
@@ -185,6 +184,7 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
             true
         );
         if (normals.size() == trianglesVertex.size()) {
+            
             newTriangle->setNormalByVertex(normals[i], normals[i + 1], normals[i + 2]);
         }
         addTriangleMesh(newTriangle);

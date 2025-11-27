@@ -16,7 +16,7 @@ struct Vec3 {
         return os;
     };
 
-    Vec3<t> operator+(const Vec3<t> v) const {
+    Vec3<t> operator+(const Vec3<t>& v) const {
         return Vec3<t>{x+v.x, y+v.y, z+v.z};
     };
 
@@ -28,7 +28,7 @@ struct Vec3 {
         return Vec3<t>{-x, -y, -z};
     };
     
-    Vec3<t> operator*(const Vec3<t> v) const {
+    Vec3<t> operator*(const Vec3<t>& v) const {
         return Vec3<t>{x*v.x, y*v.y, z*v.z};
     };
 
@@ -42,15 +42,15 @@ struct Vec3 {
         return Vec3<t>{x / a, y / a, z / a};
     }
 
-    bool operator==(const Vec3<t> v) const {
+    bool operator==(const Vec3<t>& v) const {
         return ((x == v.x && y == v.y) && z == v.z);
     };
 
-    bool operator!=(const Vec3<t> v) const {
+    bool operator!=(const Vec3<t>& v) const {
         return !operator==(v);
     };
 
-    float dot(const Vec3<t> v) const {
+    float dot(const Vec3<t>& v) const {
         return x*v.x + y*v.y + z*v.z;
     };
 
@@ -58,21 +58,15 @@ struct Vec3 {
         return Vec3<t>{1/x, 1/y, 1/z};
     };
     
-    Vec3<t> cross(const Vec3<t> v) const {
+    Vec3<t> cross(const Vec3<t>& v) const {
         return Vec3<t>{y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x};
     };
     
-    Vec3<t> reflect(const Vec3<t> v) const {
+    Vec3<t> reflect(const Vec3<t>& v) const {
         return *this - v * 2 * this->dot(v);
     };
 
- /*   template <typename T>
-Vec3<T> Vec3<T>::reflect(const Vec3<T>& I) const {
-    // *this = normal, I = incident ray
-    return I - (*this) * 2 * I.dot(*this);
-}/*
-
-    Vec3<t> refract(const Vec3<t> normal, double etaiOverEtao) const {
+    Vec3<t> refract(const Vec3<t>& normal, double etaiOverEtao) const {
         float cosTheta = std::fmin((-*this).dot(normal), 1.0f);
         Vec3<t> rOutPerp = ((*this) + normal * cosTheta) * (float)etaiOverEtao;
         Vec3<t> rOutPara = normal * - (float)std::sqrt(std::fabs(1.0 - rOutPerp.norm2()));

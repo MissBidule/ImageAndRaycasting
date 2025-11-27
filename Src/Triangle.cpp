@@ -16,7 +16,6 @@ void Triangle::setNormalByVertex(Vec3f norm0, Vec3f norm1, Vec3f norm2) {
 }
 
 double Triangle::raytrace(Ray& ray, Hit& hit) {
-    ++raysLocal;
     float u = 0;
     float v = 0;
     double d = intersection(ray.rayPos + ray.rayDir * offset, ray.rayDir, u, v);
@@ -64,8 +63,8 @@ Vec3f Triangle::normalAtPoint(float u, float v, const Ray& ray) const {
     if (normalByVertex.size() == 3) {
 
         float w = 1 - u - v;
-        normal = (normalByVertex[0] * w + normalByVertex[1] * u + normalByVertex[2] * v) / 3;
-    }      
+        normal = (normalByVertex[0] * w + normalByVertex[1] * u + normalByVertex[2] * v);
+    }
     
     return normal * (2 *(retrieveNormalDir(defaultNormal, ray.rayDir)) - 1);
 }

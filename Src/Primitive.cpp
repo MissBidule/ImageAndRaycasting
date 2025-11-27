@@ -67,6 +67,7 @@ Vec3f Primitive::definitiveColor(Ray& ray, Vec3f camPos, int depth) {
     double temp;
     distance = -1;
     Hit bestHit;
+    ++raysLocal;
     for (size_t i = 0; i < objectList.size(); i++) {
         Hit hit;
         temp = objectList[i]->raytrace(ray, hit);
@@ -169,6 +170,7 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
         Vec3f lightDir;
         float shadowAlpha = 0;
 
+       ++raysLocal;
         if (currentLight.type == LightType::POINT) {
             Vec3f ray = currentLight.pos - fragPos;
             float distance = ray.norm();
@@ -181,7 +183,6 @@ Vec3f Primitive::diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, d
                 Hit hit;
                 temp = objectList[j]->raytrace(lightRay, hit);
                 Primitive* test = objectList[j];
-                Material* matTest = test->mat;
                 if (temp != -1 && objectList[j]->multiMesh) {
                     const std::vector<Primitive*> triangleMeshes = objectList[j]->getMeshes();
                     for (size_t k = 0; k < triangleMeshes.size(); k ++) {

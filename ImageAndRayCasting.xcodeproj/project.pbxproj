@@ -135,6 +135,7 @@
 				TargetAttributes = {
 					64EEA7A22E8AF896002EB390 = {
 						CreatedOnToolsVersion = 26.0.1;
+						LastSwiftMigration = 2610;
 					};
 				};
 			};
@@ -306,6 +307,7 @@
 		64EEA7AB2E8AF896002EB390 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
 					/opt/homebrew/Cellar/libomp/21.1.5/include,
@@ -327,12 +329,15 @@
 					"-lpthread",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
 		64EEA7AC2E8AF896002EB390 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
 					/opt/homebrew/Cellar/libomp/21.1.5/include,
@@ -354,6 +359,7 @@
 					"-lpthread",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
