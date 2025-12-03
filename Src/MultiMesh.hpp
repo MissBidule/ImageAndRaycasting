@@ -11,11 +11,11 @@ class MultiMesh : public Primitive {
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
         const std::vector<Primitive*>& getMeshes() const override { return meshes;};
+        double shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float maxDist = -1) override;
+        double raytrace(Ray& ray, Hit& hit) override;
 
     private:
         void loadObjtriangles(std::string objFileName, Material* mat);
-    
-        double raytrace(Ray& ray, Hit& hit) override;
         bool intersection(Vec3f rayPos, Vec3f dir) const;
 
         Vec3f min;

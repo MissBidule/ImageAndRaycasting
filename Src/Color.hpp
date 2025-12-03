@@ -20,6 +20,8 @@ class Color {
             
         //Operator overloading
         Color operator+(const Color& c) const;
+        Color operator&(const Color& c) const;
+        Color operator|(const Color& c) const;
         bool operator==(const Color& c) const;
         bool operator!=(const Color& c) const;
         Color operator*(const double& alpha) const;

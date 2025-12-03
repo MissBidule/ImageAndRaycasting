@@ -4,7 +4,6 @@
 #include <memory>
 
 MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false), min(mm.min), max(mm.max) {
-    multiMesh = true;
     std::vector<Primitive*> meshes = mm.getMeshes();
     for (size_t i = 0; i < meshes.size(); i++) {
         const Triangle* mesh = dynamic_cast<Triangle*>(meshes[i]);
@@ -14,7 +13,6 @@ MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0
 }
 
 MultiMesh::MultiMesh(std::string objFileName, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
-    multiMesh = true;
     loadObjtriangles(objFileName, mat);
 }
 
@@ -23,8 +21,48 @@ void MultiMesh::addTriangleMesh(Triangle* triangle) {
 }
 
 double MultiMesh::raytrace(Ray& ray, Hit& hit) {
-    if (intersection(ray.rayPos, ray.rayDir)) return 0;
+    if (intersection(ray.rayPos, ray.rayDir)) {
+        Hit currentHit;
+        double distance = -1;
+        double temp;
+        const std::vector<Primitive*> triangleMeshes = getMeshes();
+        for (size_t j = 0; j < triangleMeshes.size(); j ++) {
+            temp = triangleMeshes[j]->raytrace(ray, currentHit);
+            if ((temp != -1 && temp < distance) || distance == -1) {
+                distance = temp;
+                hit = currentHit;
+            }
+        }
+        return distance;
+    }
     return -1;
+}
+
+double MultiMesh::shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float maxDist){
+    shadowMat.ignoreShadow = true;
+    shadowMat.diffuse = Color(255,255,255);
+    shadowMat.alpha = 0;
+    Material currentMat;
+    double lastHit = -1;
+    const std::vector<Primitive*> triangleMeshes = getMeshes();
+    for (size_t k = 0; k < triangleMeshes.size(); k ++) {
+        double distance = triangleMeshes[k]->shadowRaytrace(ray, hit, currentMat);
+        if (distance != -1 && ((distance - maxDist) < offset || maxDist == -1)) {
+            lastHit = distance;
+            shadowMat.ignoreShadow = false;
+            if (currentMat.type == MaterialType::TRANSPARENT) {
+                shadowMat.type = MaterialType::TRANSPARENT;
+                shadowMat.alpha += currentMat.alpha;
+                if (shadowMat.alpha >= 1) {
+                    shadowMat.alpha = 1;
+                    break;
+                }
+                shadowMat.diffuse = shadowMat.diffuse&currentMat.diffuse;
+            }
+            else break;
+        }
+    }
+    return lastHit;
 }
 
 bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir) const {

@@ -54,6 +54,7 @@ struct Material {
     float shininess = 0;
     float alpha = 1; //only used with transparent
     float ior = 1;//only used with transparent
+    bool ignoreShadow = false;
 
     MaterialType type = MaterialType::DIFFUSE;
 

@@ -27,6 +27,8 @@ class Primitive {
         virtual void setScale(float newScale) = 0;
         virtual void setTranslate(Vec3f newTranslate) = 0;
         virtual const std::vector<Primitive*>& getMeshes() const; //used for multiMesh
+        virtual double shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float maxDist = -1);
+        virtual double raytrace(Ray& ray, Hit& hit) = 0;
     
         static std::atomic<uint64_t> rays;
 
@@ -36,7 +38,6 @@ class Primitive {
         Vec3f diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, double distance, const Ray& ray) const;
         Vec3f phongColor(Vec3f fragPos, Vec3f normal, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, const Ray& ray, float attenuation) const;
         bool retrieveNormalDir(Vec3f normal, Vec3f rayDir) const;
-        virtual double raytrace(Ray& ray, Hit& hit) = 0;
         
         friend bool sortByDepth(const Primitive& a, const Primitive& b);
 
@@ -44,7 +45,6 @@ class Primitive {
 
         Vec3f pos;
         Material* mat;
-        bool multiMesh = false;
 
         const float offset = 0.01f;
         const Vec3f globalAmbientLight = Vec3f{0.05f, 0.05f, 0.05f};

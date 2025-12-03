@@ -63,7 +63,7 @@ int main(int argc, char* argv [])
 
         Material Mc4;
         Mc4.diffuse = Color::colorFromFloat(0, 1, 0);
-        Mc4.alpha = 0.5f;
+        Mc4.alpha = 0.35f;
         Mc4.ior = 1;
         Mc4.type = MaterialType::TRANSPARENT;
 
@@ -361,7 +361,7 @@ int main(int argc, char* argv [])
             delete img;
         }
     }
-	
+    
     {
         //this uses the jpeg format, scales it and compressed it
         ColorImage* img = ColorImage::readJPEG("ifpicture/cropPic.jpg");
@@ -372,5 +372,5 @@ int main(int argc, char* argv [])
         delete scaleImg;
     }*/
 
-	return 0;
+    return 0;
 }

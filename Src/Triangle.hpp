@@ -10,10 +10,10 @@ class Triangle : public Primitive {
         void setNormalByVertex(Vec3f norm0, Vec3f norm1, Vec3f norm2);
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
+        double raytrace(Ray& ray, Hit& hit) override;
 
     private:
         Vec3f normalAtPoint(float u, float v, const Ray& ray) const;
-        double raytrace(Ray& ray, Hit& hit) override;
         double intersection(Vec3f rayPos, Vec3f dir, float& u, float& v) const;
 
         Vec3f defaultNormal;
