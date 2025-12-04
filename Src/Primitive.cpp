@@ -25,7 +25,7 @@ bool Primitive::sortByPosZ(const Primitive* a, const Primitive* b)
     return a->pos.z < b->pos.z;
 }
 
-Primitive::Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj) : pos(_pos), mat(_mat) {
+Primitive::Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj) : mat(_mat), pos(_pos)  {
     if (!isPartOfObj) objectList.emplace_back(this);
 }
 

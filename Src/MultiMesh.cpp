@@ -4,21 +4,23 @@
 #include <memory>
 #include <algorithm>
 
-MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
+MultiMesh::MultiMesh(const MultiMesh& mm, bool objMat, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
     mainBBox.min = mm.mainBBox.min;
     mainBBox.max = mm.mainBBox.max;
     std::vector<Primitive*> meshes = mm.getMeshes();
     for (size_t i = 0; i < meshes.size(); i++) {
         const Triangle* mesh = dynamic_cast<Triangle*>(meshes[i]);
-        Triangle* newMesh = new Triangle(mesh, mat, true);
+        Triangle* newMesh;
+        if (objMat) newMesh = new Triangle(mesh, meshes[i]->mat, true);
+        else newMesh = new Triangle(mesh, mat, true);
         addTriangleMesh(newMesh);
     }
     if (meshes.size() == 0) return;
     initBoundingBoxes(0, (int)meshes.size() - 1, mainBBox);
 }
 
-MultiMesh::MultiMesh(std::string objFileName, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
-    loadObjtriangles(objFileName, mat);
+MultiMesh::MultiMesh(std::string objFileName, bool objMat, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
+    loadObjtriangles(objFileName, objMat, mat);
 }
 
 void MultiMesh::addTriangleMesh(Triangle* triangle) {
@@ -27,11 +29,12 @@ void MultiMesh::addTriangleMesh(Triangle* triangle) {
 
 double MultiMesh::raytrace(Ray& ray, Hit& hit) {
     if (meshes.size() == 0) return -1;
-    return raytraceRecursion(ray, hit, mainBBox);
+    double final = raytraceRecursion(ray, hit, mainBBox);
+    return final;
 }
 
 double MultiMesh::raytraceRecursion(Ray& ray, Hit& hit, const BBox& currentBox) {
-    if (intersection(ray.rayPos, ray.rayDir, currentBox)) {
+    if (intersection(ray.rayPos + ray.rayDir * offset, ray.rayDir, currentBox)) {
         if (currentBox.mesh != nullptr) {
             return currentBox.mesh->raytrace(ray, hit);
         }
@@ -41,17 +44,25 @@ double MultiMesh::raytraceRecursion(Ray& ray, Hit& hit, const BBox& currentBox) 
         double rightDistance;
         leftDistance = raytraceRecursion(ray, leftHit, *currentBox.left);
         rightDistance = raytraceRecursion(ray, rightHit, *currentBox.right);
-        if (leftDistance < rightDistance && leftDistance!= -1) {
-            hit = leftHit;
-            return leftDistance;
+        if (leftDistance < rightDistance) {
+            if (leftDistance != -1) {
+                hit = leftHit;
+                return leftDistance;
+            }
+            else if (rightDistance != -1) {
+                hit = rightHit;
+                return rightDistance;
+            }
         }
-        else if (rightDistance != -1) {
-            hit = rightHit;
-            return rightDistance;
-        }
-        else {//case where left > right but right = -1, so we take left
-            hit = leftHit;
-            return leftDistance;
+        else if (rightDistance < leftDistance) {
+            if (rightDistance != -1) {
+                hit = rightHit;
+                return rightDistance;
+            }
+            else if (leftDistance != -1) {
+                hit = leftHit;
+                return leftDistance;
+            }
         }
     }
     return -1;
@@ -67,14 +78,10 @@ double MultiMesh::shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float 
     while (distance != -1 && shadowMat.alpha < 1) {
         distance = -1;
         lastHit = raytrace(ray, hit);
-        std::cout << "?" << std::endl;
         if (lastHit != -1 && ((lastHit - maxDist) < offset || maxDist == -1)) {
             hit.object->shadowRaytrace(ray, hit, currentMat);
             distance = lastHit;
             shadowMat.ignoreShadow = false;
-    if (maxDist == -1) {
-        std::cout << "??" << std::endl;
-    }
             if (currentMat.type == MaterialType::TRANSPARENT) {
                 shadowMat.type = MaterialType::TRANSPARENT;
                 shadowMat.alpha += currentMat.alpha;
@@ -99,6 +106,8 @@ bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir, const BBox& currentBox) co
     
     Vec3f min = currentBox.min;
     Vec3f max = currentBox.max;
+    min = min - Vec3f{offset, offset, offset};
+    max = max + Vec3f{offset, offset, offset};
 
     float tmin, tmax;
     if (invdir.x >= 0) {
@@ -142,9 +151,7 @@ bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir, const BBox& currentBox) co
     if (tzmin > tmin) tmin = tzmin;
     if (tzmax < tmax) tmax = tzmax;
 
-    if (tmax < 0) return false;
-
-    return true; 
+    return tmax >= 0; 
 }
 
 void MultiMesh::setScale(float newScale) {
@@ -178,10 +185,11 @@ void MultiMesh::reTranslateBVH(Vec3f newTranslate, BBox& currentBox) {
     }
 }
 
-void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
+void MultiMesh::loadObjtriangles(std::string objFileName, bool objMat, Material* mat) {
 
     std::string inputfile = "objFiles/" + objFileName + ".obj";
     tinyobj::ObjReaderConfig reader_config;
+    if (objMat) reader_config.mtl_search_path = "objFiles/"; // Path to material files
 
     tinyobj::ObjReader reader;
 

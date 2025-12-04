@@ -13,8 +13,8 @@ struct BBox {
 
 class MultiMesh : public Primitive {
     public:
-        MultiMesh(const MultiMesh& mm, Material* mat);
-        MultiMesh(std::string objFileName, Material* mat);
+        MultiMesh(const MultiMesh& mm, bool objMat, Material* mat = nullptr);
+        MultiMesh(std::string objFileName, bool objMat, Material* mat = nullptr);
         void addTriangleMesh(Triangle* triangle);
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
@@ -23,7 +23,7 @@ class MultiMesh : public Primitive {
         double raytrace(Ray& ray, Hit& hit) override;
 
     private:
-        void loadObjtriangles(std::string objFileName, Material* mat);
+        void loadObjtriangles(std::string objFileName, bool objMat, Material* mat = nullptr);
         bool intersection(Vec3f rayPos, Vec3f dir, const BBox& currentBox) const;
         double raytraceRecursion(Ray& ray, Hit& hit, const BBox& currentBox);
         void initBoundingBoxes(int start, int end, BBox& currentBox);

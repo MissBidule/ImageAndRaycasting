@@ -79,6 +79,7 @@ int main(int argc, char* argv [])
         //Plane p3(Vec3f{0, 600, 0}, Vec3f{0, -1, 0}, Mc1);
         //Plane p4(Vec3f{-600, 0, 0}, Vec3f{1, 0, 0}, Mc2);
         Plane p5(Vec3f{0, 0, 5800}, Vec3f{0, 0, -1}, &Mc0);
+        Plane p6(Vec3f{0, 0, 1}, Vec3f{0, 0, 1}, &Mc4);
     
         //our camera defines our final view
         Camera cam {
@@ -89,31 +90,31 @@ int main(int argc, char* argv [])
             1300
         };
 
-        MultiMesh Obj = MultiMesh("cube", &Mc4);
-        MultiMesh Obj2 = MultiMesh(Obj, &Mc1);
-        Obj.setScale(100);
-        Obj.setTranslate(Vec3f{-250, -250, 1500});
-        Obj2.setScale(200);
-        Obj2.setTranslate(Vec3f{250, 150, 1500});
-        // MultiMesh Obj = MultiMesh("sofa", &Mc2);
-        // Obj.setScale(600);
-        // Obj.setTranslate(Vec3f{0, 0, 2500});
+        MultiMesh Obj0 = MultiMesh("cube", false, &Mc4);
+        // MultiMesh Obj2 = MultiMesh(Obj, &Mc1);
+        Obj0.setScale(100);
+        Obj0.setTranslate(Vec3f{-250, -250, 1500});
+        // Obj2.setScale(200);
+        // Obj2.setTranslate(Vec3f{250, 150, 1500});
+        MultiMesh Obj = MultiMesh("sofa", false, &Mc1);
+        Obj.setScale(400);
+        Obj.setTranslate(Vec3f{-300, -200, 2500});
 
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
         //draw our first picture in orthogonal view
-        // ColorImage* orthoImg = Primitive::draw(*img, cam);
+        ColorImage* orthoImg = Primitive::draw(*img, cam);
         
-        // std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
         
-        // orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
+        orthoImg->writeJPEG("ofpicture/cropPicWithCirclesOrtho.jpg", 100);
         
-        // std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho : " << Primitive::rays.load() << " rays" << std::endl;
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms] for ortho : " << Primitive::rays.load() << " rays" << std::endl;
         
         //change and draw in perspective
         cam.viewType = ViewType::PERSP;
         
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        end = std::chrono::steady_clock::now();
         
         ColorImage* perspImg = Primitive::draw(*img, cam);
         

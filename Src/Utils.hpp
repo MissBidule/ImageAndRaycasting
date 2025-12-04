@@ -55,7 +55,14 @@ struct Vec3 {
     };
 
     Vec3<t> invdir() const {
-        return Vec3<t>{1/x, 1/y, 1/z};
+        const float offset = 1e-8f; // small value to avoid division by zero
+        Vec3<t> inv;
+
+        inv.x = (fabs(x) > offset) ? 1.0f / x : 1e8f; // use a large number instead of INF
+        inv.y = (fabs(y) > offset) ? 1.0f / y : 1e8f;
+        inv.z = (fabs(z) > offset) ? 1.0f / z : 1e8f;
+
+        return inv;
     };
     
     Vec3<t> cross(const Vec3<t>& v) const {

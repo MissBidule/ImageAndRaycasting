@@ -34,6 +34,7 @@ class Primitive {
         virtual double raytrace(Ray& ray, Hit& hit) = 0;
     
         static std::atomic<uint64_t> rays;
+        Material* mat;
 
     protected:
         static Vec3f definitiveColor(Ray& ray, Vec3f camPos, int depth = 5);
@@ -45,7 +46,6 @@ class Primitive {
         Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj = false);
 
         Vec3f pos;
-        Material* mat;
 
         const float offset = 0.01f;
         const Vec3f globalAmbientLight = Vec3f{0.05f, 0.05f, 0.05f};
