@@ -1,11 +1,19 @@
 #include "Triangle.hpp"
 
-Triangle::Triangle(const Triangle* t, Material* mat, bool isPartOfObj) : Primitive(t->pos, mat, isPartOfObj), defaultNormal(t->defaultNormal), vertex0(t->vertex0), vertex1(t->vertex1), vertex2(t->vertex2), normalByVertex(t->normalByVertex) {}
+void setMinMax(float value0, float value1, float value2, float& min, float& max);
+
+Triangle::Triangle(const Triangle* t, Material* mat, bool isPartOfObj) : Primitive(t->pos, mat, isPartOfObj), min(t->min), max(t->max), defaultNormal(t->defaultNormal), vertex0(t->vertex0), vertex1(t->vertex1), vertex2(t->vertex2), normalByVertex(t->normalByVertex) {}
 
 Triangle::Triangle(Vec3f vert0, Vec3f vert1, Vec3f vert2, Material* mat, bool isPartOfObj) : Primitive(Vec3f{0,0,0}, mat, isPartOfObj), vertex0(vert0), vertex1(vert1), vertex2(vert2) {
     pos = Vec3f{(vert0.x + vert1.x + vert2.x) / 3.0f, (vert0.y + vert1.y + vert2.y) / 3.0f, (vert0.z + vert1.z + vert2.z) / 3.0f};
     Vec3f edge1 = vert2 - vert0;
     Vec3f edge2 = vert1 - vert0;
+    
+    //min max of coord
+    setMinMax(vert0.x, vert1.x, vert2.x, min.x, max.x);
+    setMinMax(vert0.y, vert1.y, vert2.y, min.y, max.y);
+    setMinMax(vert0.z, vert1.z, vert2.z, min.z, max.z);
+    
     defaultNormal = edge1.cross(edge2).normalize();
 }
 
@@ -73,12 +81,47 @@ void Triangle::setScale(float newScale) {
     vertex0 = vertex0*newScale;
     vertex1 = vertex1*newScale;
     vertex2 = vertex2*newScale;
+    
+    min = min*newScale;
+    max = max*newScale;
 }
 
 void Triangle::setTranslate(Vec3f newTranslate) {
     vertex0 = vertex0+newTranslate;
     vertex1 = vertex1+newTranslate;
     vertex2 = vertex2+newTranslate;
+    
+    min = min+newTranslate;
+    max = max+newTranslate;
 
     pos = pos + newTranslate;
+}
+
+void setMinMax(float value0, float value1, float value2, float& min, float& max) {
+    if (value0 < value1) {// 0 < 1
+        min = value0;
+        max = value1;
+        if (value0 < value2) {// 0 < 1 && 2
+            if (value1 < value2) {// 0 < 1 < 2
+                max = value2;
+            }
+            else ;// 0 < 2 < 1
+        }
+        else {// 2 < 0 < 1
+            min = value2;
+        }
+    }
+    else {// 1 < 0
+        min = value1;
+        max = value0;
+        if (value1 < value2) {// 1 < 0 && 2
+            if (value0 < value2) {// 1 < 0 < 2
+                max = value2;
+            }
+            else ;// 1 < 2 < 0
+        }
+        else {// 2 < 1 < 0
+            min = value2;
+        }
+    }
 }

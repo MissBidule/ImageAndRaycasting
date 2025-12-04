@@ -9,12 +9,21 @@ Vec3f Primitive::defaultColor = Vec3f{0.2f, 0.2f, 0.9f};
 std::atomic<uint64_t> Primitive::rays{0};
 thread_local uint64_t raysLocal = 0;
 
-//maybe too costly in time
-bool sortByDepth(const Primitive& a, const Primitive& b)
+//std::sort(Primitive::ObjectList.begin(), Primitive::ObjectList.end(), sortByPosX);
+bool Primitive::sortByPosX(const Primitive* a, const Primitive* b)
 {
-    return a.pos.z < b.pos.z;
+    return a->pos.x < b->pos.x;
 }
-//std::sort(Primitive::ObjectList.begin(), Primitive::ObjectList.end(), sortByDepth);
+
+bool Primitive::sortByPosY(const Primitive* a, const Primitive* b)
+{
+    return a->pos.y < b->pos.y;
+}
+
+bool Primitive::sortByPosZ(const Primitive* a, const Primitive* b)
+{
+    return a->pos.z < b->pos.z;
+}
 
 Primitive::Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj) : pos(_pos), mat(_mat) {
     if (!isPartOfObj) objectList.emplace_back(this);

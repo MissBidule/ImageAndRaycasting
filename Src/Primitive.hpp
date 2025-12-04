@@ -21,6 +21,9 @@ class Primitive {
     public:
         static std::vector<Primitive*> objectList;
         static Vec3f defaultColor;
+        static bool sortByPosX(const Primitive* a, const Primitive* b);
+        static bool sortByPosY(const Primitive* a, const Primitive* b);
+        static bool sortByPosZ(const Primitive* a, const Primitive* b);
 
         //will call all primitives to draw
         static ColorImage* draw(const ColorImage& img, Camera cam, int samples = 4);
@@ -38,8 +41,6 @@ class Primitive {
         Vec3f diffuseCalculation(Vec3f fragPos, Vec3f normal, Vec3f camPos, double distance, const Ray& ray) const;
         Vec3f phongColor(Vec3f fragPos, Vec3f normal, Vec3f lightColor, Vec3f lightDir, Vec3f camPos, const Ray& ray, float attenuation) const;
         bool retrieveNormalDir(Vec3f normal, Vec3f rayDir) const;
-        
-        friend bool sortByDepth(const Primitive& a, const Primitive& b);
 
         Primitive(Vec3f _pos, Material* _mat, bool isPartOfObj = false);
 

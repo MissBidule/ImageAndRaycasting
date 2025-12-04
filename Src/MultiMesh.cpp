@@ -3,7 +3,9 @@
 #include "tiny_obj_loader.h"
 #include <memory>
 
-MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false), min(mm.min), max(mm.max) {
+MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
+    mainBBox.min = new Vec3f(*mm.mainBBox.min);
+    mainBBox.max = new Vec3f(*mm.mainBBox.max);
     std::vector<Primitive*> meshes = mm.getMeshes();
     for (size_t i = 0; i < meshes.size(); i++) {
         const Triangle* mesh = dynamic_cast<Triangle*>(meshes[i]);
@@ -68,6 +70,8 @@ double MultiMesh::shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float 
 bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir) const {
     Vec3f invdir = dir.invdir();
     
+    Vec3f min = *mainBBox.min;
+    Vec3f max = *mainBBox.max;
     float tmin, tmax;
     if (invdir.x >= 0) {
         tmin = (min.x - rayPos.x) * invdir.x;
@@ -114,16 +118,16 @@ void MultiMesh::setScale(float newScale) {
     for (size_t i = 0; i < meshes.size(); i++) {
         meshes[i]->setScale(newScale);
     }
-    min = min * newScale;
-    max = max * newScale;
+    *mainBBox.min = *mainBBox.min * newScale;
+    *mainBBox.max = *mainBBox.max * newScale;
 }
 
 void MultiMesh::setTranslate(Vec3f newTranslate) {
     for (size_t i = 0; i < meshes.size(); i++) {
         meshes[i]->setTranslate(newTranslate);
     }
-    min = min + newTranslate;
-    max = max + newTranslate;
+    *mainBBox.min = *mainBBox.min + newTranslate;
+    *mainBBox.max = *mainBBox.max + newTranslate;
 }
 
 void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
@@ -227,8 +231,27 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
         }
         addTriangleMesh(newTriangle);
     }
-    min = _min + rebaseVec;
-    max = _max + rebaseVec;
+    mainBBox.min = new Vec3f(_min + rebaseVec);
+    mainBBox.max = new Vec3f(_max + rebaseVec);
     
-    std::cout << min << " " << max << std::endl;
+    if (meshes.size() == 0) return;
+    initBoundingBoxes(0, (int)meshes.size() - 1, mainBBox);
+}
+
+void MultiMesh::initBoundingBoxes(int start, int end, BBox& currentBox) {
+    if (end == start) {
+        //make triangle in bbox
+        return;
+    }
+    Vec3f extents = *currentBox.max - *currentBox.min;
+    if ((extents.x > extents.y) && (extents.x > extents.z))
+        std::sort(Primitive::objectList.begin() + start, Primitive::objectList.begin() + end, Primitive::sortByPosX);
+    if ((extents.y > extents.z) && (extents.y > extents.x))
+        std::sort(Primitive::objectList.begin() + start, Primitive::objectList.begin() + end, Primitive::sortByPosY);
+    if ((extents.z > extents.y) && (extents.z > extents.x))
+        std::sort(Primitive::objectList.begin() + start, Primitive::objectList.begin() + end, Primitive::sortByPosX);
+    
+    //make bbox and iterate
+    //half in each
+    //keep min, keep max
 }

@@ -11,6 +11,9 @@ class Triangle : public Primitive {
         void setScale(float newScale) override;
         void setTranslate(Vec3f newTranslate) override;
         double raytrace(Ray& ray, Hit& hit) override;
+    
+        Vec3f min;
+        Vec3f max;
 
     private:
         Vec3f normalAtPoint(float u, float v, const Ray& ray) const;

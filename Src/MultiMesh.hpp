@@ -3,6 +3,14 @@
 
 #include "Triangle.hpp"
 
+struct BBox {
+    Vec3f* min;
+    Vec3f* max;
+    Triangle* mesh = nullptr;
+    BBox* left = nullptr;
+    BBox* right = nullptr;
+};
+
 class MultiMesh : public Primitive {
     public:
         MultiMesh(const MultiMesh& mm, Material* mat);
@@ -17,10 +25,10 @@ class MultiMesh : public Primitive {
     private:
         void loadObjtriangles(std::string objFileName, Material* mat);
         bool intersection(Vec3f rayPos, Vec3f dir) const;
+        void initBoundingBoxes(int start, int end, BBox& currentBox);
 
-        Vec3f min;
-        Vec3f max;
         std::vector<Primitive*> meshes;
+        BBox mainBBox;
 };
 
 #endif //_MULTI_MESH_HPP_
