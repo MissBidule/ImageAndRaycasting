@@ -4,9 +4,9 @@
 #include "Triangle.hpp"
 
 struct BBox {
-    Vec3f* min;
-    Vec3f* max;
-    Triangle* mesh = nullptr;
+    Vec3f min;
+    Vec3f max;
+    Primitive* mesh = nullptr;
     BBox* left = nullptr;
     BBox* right = nullptr;
 };
@@ -24,8 +24,11 @@ class MultiMesh : public Primitive {
 
     private:
         void loadObjtriangles(std::string objFileName, Material* mat);
-        bool intersection(Vec3f rayPos, Vec3f dir) const;
+        bool intersection(Vec3f rayPos, Vec3f dir, const BBox& currentBox) const;
+        double raytraceRecursion(Ray& ray, Hit& hit, const BBox& currentBox);
         void initBoundingBoxes(int start, int end, BBox& currentBox);
+        void reScaleBVH(float newScale, BBox& currentBox);
+        void reTranslateBVH(Vec3f newTranslate, BBox& currentBox);
 
         std::vector<Primitive*> meshes;
         BBox mainBBox;

@@ -2,16 +2,19 @@
 #include "MultiMesh.hpp"
 #include "tiny_obj_loader.h"
 #include <memory>
+#include <algorithm>
 
 MultiMesh::MultiMesh(const MultiMesh& mm, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
-    mainBBox.min = new Vec3f(*mm.mainBBox.min);
-    mainBBox.max = new Vec3f(*mm.mainBBox.max);
+    mainBBox.min = mm.mainBBox.min;
+    mainBBox.max = mm.mainBBox.max;
     std::vector<Primitive*> meshes = mm.getMeshes();
     for (size_t i = 0; i < meshes.size(); i++) {
         const Triangle* mesh = dynamic_cast<Triangle*>(meshes[i]);
         Triangle* newMesh = new Triangle(mesh, mat, true);
         addTriangleMesh(newMesh);
     }
+    if (meshes.size() == 0) return;
+    initBoundingBoxes(0, (int)meshes.size() - 1, mainBBox);
 }
 
 MultiMesh::MultiMesh(std::string objFileName, Material* mat) : Primitive(Vec3f{0,0,0}, nullptr, false) {
@@ -23,19 +26,33 @@ void MultiMesh::addTriangleMesh(Triangle* triangle) {
 }
 
 double MultiMesh::raytrace(Ray& ray, Hit& hit) {
-    if (intersection(ray.rayPos, ray.rayDir)) {
-        Hit currentHit;
-        double distance = -1;
-        double temp;
-        const std::vector<Primitive*> triangleMeshes = getMeshes();
-        for (size_t j = 0; j < triangleMeshes.size(); j ++) {
-            temp = triangleMeshes[j]->raytrace(ray, currentHit);
-            if ((temp != -1 && temp < distance) || distance == -1) {
-                distance = temp;
-                hit = currentHit;
-            }
+    if (meshes.size() == 0) return -1;
+    return raytraceRecursion(ray, hit, mainBBox);
+}
+
+double MultiMesh::raytraceRecursion(Ray& ray, Hit& hit, const BBox& currentBox) {
+    if (intersection(ray.rayPos, ray.rayDir, currentBox)) {
+        if (currentBox.mesh != nullptr) {
+            return currentBox.mesh->raytrace(ray, hit);
         }
-        return distance;
+        Hit leftHit;
+        Hit rightHit;
+        double leftDistance;
+        double rightDistance;
+        leftDistance = raytraceRecursion(ray, leftHit, *currentBox.left);
+        rightDistance = raytraceRecursion(ray, rightHit, *currentBox.right);
+        if (leftDistance < rightDistance && leftDistance!= -1) {
+            hit = leftHit;
+            return leftDistance;
+        }
+        else if (rightDistance != -1) {
+            hit = rightHit;
+            return rightDistance;
+        }
+        else {//case where left > right but right = -1, so we take left
+            hit = leftHit;
+            return leftDistance;
+        }
     }
     return -1;
 }
@@ -45,13 +62,19 @@ double MultiMesh::shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float 
     shadowMat.diffuse = Color(255,255,255);
     shadowMat.alpha = 0;
     Material currentMat;
-    double lastHit = -1;
-    const std::vector<Primitive*> triangleMeshes = getMeshes();
-    for (size_t k = 0; k < triangleMeshes.size(); k ++) {
-        double distance = triangleMeshes[k]->shadowRaytrace(ray, hit, currentMat);
-        if (distance != -1 && ((distance - maxDist) < offset || maxDist == -1)) {
-            lastHit = distance;
+    double lastHit = 0;
+    double distance = 0;
+    while (distance != -1 && shadowMat.alpha < 1) {
+        distance = -1;
+        lastHit = raytrace(ray, hit);
+        std::cout << "?" << std::endl;
+        if (lastHit != -1 && ((lastHit - maxDist) < offset || maxDist == -1)) {
+            hit.object->shadowRaytrace(ray, hit, currentMat);
+            distance = lastHit;
             shadowMat.ignoreShadow = false;
+    if (maxDist == -1) {
+        std::cout << "??" << std::endl;
+    }
             if (currentMat.type == MaterialType::TRANSPARENT) {
                 shadowMat.type = MaterialType::TRANSPARENT;
                 shadowMat.alpha += currentMat.alpha;
@@ -60,18 +83,23 @@ double MultiMesh::shadowRaytrace(Ray& ray, Hit& hit, Material& shadowMat, float 
                     break;
                 }
                 shadowMat.diffuse = shadowMat.diffuse&currentMat.diffuse;
+                ray.rayPos = hit.fragPos;
             }
-            else break;
+            else {
+                shadowMat.alpha = 1;
+                break;
+            }
         }
     }
     return lastHit;
 }
 
-bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir) const {
+bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir, const BBox& currentBox) const {
     Vec3f invdir = dir.invdir();
     
-    Vec3f min = *mainBBox.min;
-    Vec3f max = *mainBBox.max;
+    Vec3f min = currentBox.min;
+    Vec3f max = currentBox.max;
+
     float tmin, tmax;
     if (invdir.x >= 0) {
         tmin = (min.x - rayPos.x) * invdir.x;
@@ -111,6 +139,11 @@ bool MultiMesh::intersection(Vec3f rayPos, Vec3f dir) const {
     if ((tmin > tzmax) || (tzmin > tmax)) 
         return false; 
 
+    if (tzmin > tmin) tmin = tzmin;
+    if (tzmax < tmax) tmax = tzmax;
+
+    if (tmax < 0) return false;
+
     return true; 
 }
 
@@ -118,16 +151,31 @@ void MultiMesh::setScale(float newScale) {
     for (size_t i = 0; i < meshes.size(); i++) {
         meshes[i]->setScale(newScale);
     }
-    *mainBBox.min = *mainBBox.min * newScale;
-    *mainBBox.max = *mainBBox.max * newScale;
+    reScaleBVH(newScale, mainBBox);
 }
 
 void MultiMesh::setTranslate(Vec3f newTranslate) {
     for (size_t i = 0; i < meshes.size(); i++) {
         meshes[i]->setTranslate(newTranslate);
     }
-    *mainBBox.min = *mainBBox.min + newTranslate;
-    *mainBBox.max = *mainBBox.max + newTranslate;
+    reTranslateBVH(newTranslate, mainBBox);
+}
+
+void MultiMesh::reScaleBVH(float newScale, BBox& currentBox) {
+    currentBox.min = currentBox.min * newScale;
+    currentBox.max = currentBox.max * newScale;
+    if (currentBox.mesh == nullptr) {
+        reScaleBVH(newScale, *currentBox.left);
+        reScaleBVH(newScale, *currentBox.right);
+    }
+}
+void MultiMesh::reTranslateBVH(Vec3f newTranslate, BBox& currentBox) {
+    currentBox.min = currentBox.min + newTranslate;
+    currentBox.max = currentBox.max + newTranslate;
+    if (currentBox.mesh == nullptr) {
+        reTranslateBVH(newTranslate, *currentBox.left);
+        reTranslateBVH(newTranslate, *currentBox.right);
+    }
 }
 
 void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
@@ -190,20 +238,24 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
                     first = false;
                 }
                 else {
-                    if (vx < _min.x) _min.x = vx;
-                    else if (vx > _max.x) _max.x = vx;
-                    if (vy < _min.y) _min.y = vy;
-                    else if (vy > _max.y) _max.y = vy;
-                    if (vz < _min.z) _min.z = vz;
-                    else if (vz > _max.z) _max.z = vz;
+                    _min.x = std::min(vx, _min.x);
+                    _max.x = std::max(vx, _max.x);
+                    _min.y = std::min(vy, _min.y);
+                    _max.y = std::max(vy, _max.y);
+                    _min.z = std::min(vz, _min.z);
+                    _max.z = std::max(vz, _max.z);
                 }
             }
             index_offset += fv;
         }
     }
     
-    float minCoord = _min.x < _min.y ? (_min.z < _min.x ? _min.z : _min.x) : (_min.z < _min.y ? _min.z : _min.y);
-    float maxCoord = _max.x > _max.y ? (_max.z > _max.x ? _max.z : _max.x) : (_max.z > _max.y ? _max.z : _max.y);
+    float minCoord;
+    minCoord = std::min(_min.x, _min.y);
+    minCoord = std::min(_min.z, minCoord);
+    float maxCoord;
+    maxCoord = std::min(_max.x, _max.y);
+    maxCoord = std::min(_max.z, maxCoord);
     float actualAmplitude = maxCoord - minCoord;
     if (actualAmplitude == 0) return;
     float factor = 2 / actualAmplitude;
@@ -231,27 +283,43 @@ void MultiMesh::loadObjtriangles(std::string objFileName, Material* mat) {
         }
         addTriangleMesh(newTriangle);
     }
-    mainBBox.min = new Vec3f(_min + rebaseVec);
-    mainBBox.max = new Vec3f(_max + rebaseVec);
     
     if (meshes.size() == 0) return;
     initBoundingBoxes(0, (int)meshes.size() - 1, mainBBox);
 }
 
 void MultiMesh::initBoundingBoxes(int start, int end, BBox& currentBox) {
+    currentBox.min = dynamic_cast<Triangle*>(meshes[start])->min;
+    currentBox.max = dynamic_cast<Triangle*>(meshes[start])->max;
+
+    for (int i = start+1; i <= end; i++) {
+        const Vec3f& tmin = dynamic_cast<Triangle*>(meshes[i])->min;
+        const Vec3f& tmax = dynamic_cast<Triangle*>(meshes[i])->max;
+
+        currentBox.min.x = std::min(currentBox.min.x, tmin.x);
+        currentBox.min.y = std::min(currentBox.min.y, tmin.y);
+        currentBox.min.z = std::min(currentBox.min.z, tmin.z);
+
+        currentBox.max.x = std::max(currentBox.max.x, tmax.x);
+        currentBox.max.y = std::max(currentBox.max.y, tmax.y);
+        currentBox.max.z = std::max(currentBox.max.z, tmax.z);
+    }
+
     if (end == start) {
-        //make triangle in bbox
+        currentBox.mesh = meshes[start];
         return;
     }
-    Vec3f extents = *currentBox.max - *currentBox.min;
+    Vec3f extents = currentBox.max - currentBox.min;
     if ((extents.x > extents.y) && (extents.x > extents.z))
-        std::sort(Primitive::objectList.begin() + start, Primitive::objectList.begin() + end, Primitive::sortByPosX);
+        std::sort(meshes.begin() + start, meshes.begin() + end, Primitive::sortByPosX);
     if ((extents.y > extents.z) && (extents.y > extents.x))
-        std::sort(Primitive::objectList.begin() + start, Primitive::objectList.begin() + end, Primitive::sortByPosY);
+        std::sort(meshes.begin() + start, meshes.begin() + end, Primitive::sortByPosY);
     if ((extents.z > extents.y) && (extents.z > extents.x))
-        std::sort(Primitive::objectList.begin() + start, Primitive::objectList.begin() + end, Primitive::sortByPosX);
+        std::sort(meshes.begin() + start, meshes.begin() + end, Primitive::sortByPosZ);
     
-    //make bbox and iterate
-    //half in each
-    //keep min, keep max
+    int midArray = ((end - start) / 2) + start;
+    currentBox.left = new BBox();
+    initBoundingBoxes(start, midArray, *currentBox.left);
+    currentBox.right = new BBox();
+    initBoundingBoxes(midArray+1, end, *currentBox.right);
 }

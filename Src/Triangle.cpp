@@ -98,30 +98,8 @@ void Triangle::setTranslate(Vec3f newTranslate) {
 }
 
 void setMinMax(float value0, float value1, float value2, float& min, float& max) {
-    if (value0 < value1) {// 0 < 1
-        min = value0;
-        max = value1;
-        if (value0 < value2) {// 0 < 1 && 2
-            if (value1 < value2) {// 0 < 1 < 2
-                max = value2;
-            }
-            else ;// 0 < 2 < 1
-        }
-        else {// 2 < 0 < 1
-            min = value2;
-        }
-    }
-    else {// 1 < 0
-        min = value1;
-        max = value0;
-        if (value1 < value2) {// 1 < 0 && 2
-            if (value0 < value2) {// 1 < 0 < 2
-                max = value2;
-            }
-            else ;// 1 < 2 < 0
-        }
-        else {// 2 < 1 < 0
-            min = value2;
-        }
-    }
+    min = std::min(value0, value1);
+    min = std::min(value2, min);
+    max = std::max(value0, value1);
+    max = std::max(value2, max);
 }
